@@ -259,7 +259,12 @@ class Templ_emb(nn.Module):
         #
         pair = pair.reshape(B, L, L, -1)
         pair = pair + out
-
+        print(pair.shape)
+        print(state.shape)
+        #print(state[0,102:110,:])
+        #print(pair[0,102:110,102:110,:])
+        #print(state[0, 11:20,:])
+        #print(pair[0, 11:20, 11:20,:])
         return pair, state
 
 class Recycling(nn.Module):

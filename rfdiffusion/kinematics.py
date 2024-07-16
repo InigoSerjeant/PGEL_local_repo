@@ -43,9 +43,9 @@ def get_ang(a, b, c):
     """
     v = a - b
     w = c - b
-    v /= torch.norm(v, dim=-1, keepdim=True)
-    w /= torch.norm(w, dim=-1, keepdim=True)
-    vw = torch.sum(v*w, dim=-1)
+    v_norm = v / torch.norm(v, dim=-1, keepdim=True)
+    w_norm = w / torch.norm(w, dim=-1, keepdim=True)
+    vw = torch.sum(v_norm*w_norm, dim=-1)
 
     return torch.acos(vw)
 
@@ -72,13 +72,13 @@ def get_dih(a, b, c, d):
     b1 = c - b
     b2 = d - c
 
-    b1 /= torch.norm(b1, dim=-1, keepdim=True)
+    b1_norm = b1 / torch.norm(b1, dim=-1, keepdim=True)
 
-    v = b0 - torch.sum(b0*b1, dim=-1, keepdim=True)*b1
-    w = b2 - torch.sum(b2*b1, dim=-1, keepdim=True)*b1
+    v = b0 - torch.sum(b0*b1_norm, dim=-1, keepdim=True)*b1_norm
+    w = b2 - torch.sum(b2*b1_norm, dim=-1, keepdim=True)*b1_norm
 
     x = torch.sum(v*w, dim=-1)
-    y = torch.sum(torch.cross(b1,v,dim=-1)*w, dim=-1)
+    y = torch.sum(torch.cross(b1_norm,v,dim=-1)*w, dim=-1)
     output = torch.atan2(y, x)
     if output_np:
         return output.numpy()
@@ -112,7 +112,7 @@ def xyz_to_c6d(xyz, params=PARAMS):
     c6d = torch.zeros([batch,nres,nres,4],dtype=xyz.dtype,device=xyz.device)
 
     dist = get_pair_dist(Cb,Cb)
-    dist[torch.isnan(dist)] = 999.9
+    dist = torch.where(torch.isnan(dist), torch.tensor(999.99, device=dist.device), dist)
     c6d[...,0] = dist + 999.9*torch.eye(nres,device=xyz.device)[None,...]
     b,i,j = torch.where(c6d[...,0]<params['DMAX'])
 
@@ -121,9 +121,9 @@ def xyz_to_c6d(xyz, params=PARAMS):
     c6d[b,i,j,torch.full_like(b,3)] = get_ang(Ca[b,i], Cb[b,i], Cb[b,j])
 
     # fix long-range distances
-    c6d[...,0][c6d[...,0]>=params['DMAX']] = 999.9
+    c6d[...,0] = torch.where(c6d[...,0]>=params['DMAX'], torch.tensor(999.9, device=c6d.device), c6d[...,0])
     
-    mask = torch.zeros((batch, nres,nres), dtype=xyz.dtype, device=xyz.device)
+    mask = torch.zeros((batch, nres, nres), dtype=xyz.dtype, device=xyz.device)
     mask[b,i,j] = 1.0
     return c6d, mask
     

@@ -18,11 +18,13 @@ def generate_Cbeta(N, Ca, C):
 
 def th_ang_v(ab, bc, eps: float = 1e-8):
     def th_norm(x, eps: float = 1e-8):
+        x[torch.isnan(x)] = 0.0
         return x.square().sum(-1, keepdim=True).add(eps).sqrt()
 
     def th_N(x, alpha: float = 0):
-        return x / th_norm(x).add(alpha)
-
+        x[torch.isnan(x)] = 0.0
+        x_norm = th_norm(x)
+        return x / (x_norm + alpha)
     ab, bc = th_N(ab), th_N(bc)
     cos_angle = torch.clamp((ab * bc).sum(-1), -1, 1)
     sin_angle = torch.sqrt(1 - cos_angle.square() + eps)
@@ -32,25 +34,36 @@ def th_ang_v(ab, bc, eps: float = 1e-8):
 
 def th_dih_v(ab, bc, cd):
     def th_cross(a, b):
+        a[torch.isnan(a)] = 0.0
+        b[torch.isnan(b)] = 0.0
         a, b = torch.broadcast_tensors(a, b)
         return torch.cross(a, b, dim=-1)
 
     def th_norm(x, eps: float = 1e-8):
+        x[torch.isnan(x)] = 0.0
         return x.square().sum(-1, keepdim=True).add(eps).sqrt()
 
     def th_N(x, alpha: float = 0):
-        return x / th_norm(x).add(alpha)
+        x[torch.isnan(x)] = 0.0
+        x_norm = th_norm(x)
+        return x / (x_norm + alpha)
 
-    ab, bc, cd = th_N(ab), th_N(bc), th_N(cd)
-    n1 = th_N(th_cross(ab, bc))
-    n2 = th_N(th_cross(bc, cd))
-    sin_angle = (th_cross(n1, bc) * n2).sum(-1)
+    ab_, bc_, cd_ = th_N(ab), th_N(bc), th_N(cd)
+    c1 = th_cross(ab_, bc_)
+    n1 = th_N(c1)
+    c2 = th_cross(torch.clone(bc_), cd_)
+    n2 = th_N(c2)
+    sin_angle = (th_cross(n1, torch.clone(bc_)) * n2).sum(-1)
     cos_angle = (n1 * n2).sum(-1)
     dih = torch.stack((cos_angle, sin_angle), -1)
     return dih
 
 
 def th_dih(a, b, c, d):
+    a[torch.isnan(a)] = 0.0
+    b[torch.isnan(b)] = 0.0
+    c[torch.isnan(c)] = 0.0
+    d[torch.isnan(d)] = 0.0
     return th_dih_v(a - b, b - c, c - d)
 
 

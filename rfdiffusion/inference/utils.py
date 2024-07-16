@@ -54,11 +54,11 @@ def get_next_frames(xt, px0, t, diffuser, so3_type, diffusion_mask, noise_scale=
     R_t, Ca_t = rigid_from_3_points(N_t, Ca_t, C_t)
 
     # this must be to normalize them or something
-    R_0 = scipy_R.from_matrix(R_0.squeeze().numpy()).as_matrix()
-    R_t = scipy_R.from_matrix(R_t.squeeze().numpy()).as_matrix()
+    R_0 = torch.Tensor(scipy_R.from_matrix(R_0.squeeze().detach().numpy()).as_matrix()) # revisit
+    R_t = torch.Tensor(scipy_R.from_matrix(R_t.squeeze().detach().numpy()).as_matrix()) # revisit
 
     L = R_t.shape[0]
-    all_rot_transitions = np.broadcast_to(np.identity(3), (L, 3, 3)).copy()
+    all_rot_transitions = torch.clone(torch.broadcast_to(torch.eye(3), (L, 3, 3)))
     # Sample next frame for each residue
     if so3_type == "igso3":
         # don't do calculations on masked positions since they end up as identity matrix
@@ -71,7 +71,7 @@ def get_next_frames(xt, px0, t, diffuser, so3_type, diffusion_mask, noise_scale=
             noise_level=noise_scale,
             mask=None,
             return_perturb=True,
-        )
+        ).to(torch.float32)
     else:
         assert False, "so3 diffusion type %s not implemented" % so3_type
 
@@ -79,12 +79,12 @@ def get_next_frames(xt, px0, t, diffuser, so3_type, diffusion_mask, noise_scale=
 
     # Apply the interpolated rotation matrices to the coordinates
     next_crds = (
-        np.einsum(
+        torch.einsum(
             "lrij,laj->lrai",
             all_rot_transitions,
-            xt[:, :3, :] - Ca_t.squeeze()[:, None, ...].numpy(),
+            xt[:, :3, :] - Ca_t.squeeze()[:, None, ...],
         )
-        + Ca_t.squeeze()[:, None, None, ...].numpy()
+        + Ca_t.squeeze()[:, None, None, ...]
     )
 
     # (L,3,3) set of backbone coordinates with slight rotation
@@ -301,7 +301,7 @@ class Denoise:
         def rmsd(V, W, eps=0):
             # First sum down atoms, then sum down xyz
             N = V.shape[-2]
-            return np.sqrt(np.sum((V - W) * (V - W), axis=(-2, -1)) / N + eps)
+            return torch.sqrt(torch.sum((V - W) * (V - W), axis=(-2, -1)) / N + eps)
 
         assert (
             xT.shape[1] == px0.shape[1]
@@ -310,14 +310,14 @@ class Denoise:
         L, n_atom, _ = xT.shape  # A is number of atoms
         atom_mask = ~torch.isnan(px0)
         # convert to numpy arrays
-        px0 = px0.cpu().detach().numpy()
+        px0 = px0
         xT = xT.cpu().detach().numpy()
         diffusion_mask = diffusion_mask.cpu().detach().numpy()
 
         # 1 centre motifs at origin and get rotation matrix
         px0_motif = px0[diffusion_mask, :3].reshape(-1, 3)
         xT_motif = xT[diffusion_mask, :3].reshape(-1, 3)
-        px0_motif_mean = np.copy(px0_motif.mean(0))  # need later
+        px0_motif_mean = torch.clone(px0_motif.mean(0))  # need later
         xT_motif_mean = np.copy(xT_motif.mean(0))
 
         # center at origin
@@ -326,17 +326,16 @@ class Denoise:
 
         # A = px0_motif
         # B = xT_motif
-        A = xT_motif
+        A = torch.Tensor(xT_motif).to(px0_motif.device)
         B = px0_motif
 
-        C = np.matmul(A.T, B)
-
+        C = torch.matmul(A.T, B)
         # compute optimal rotation matrix using SVD
-        U, S, Vt = np.linalg.svd(C)
+        U, S, Vt = torch.linalg.svd(C)
 
         # ensure right handed coordinate system
-        d = np.eye(3)
-        d[-1, -1] = np.sign(np.linalg.det(Vt.T @ U.T))
+        d = torch.eye(3).to(px0_motif.device)
+        d[-1, -1] = torch.sign(torch.linalg.det(Vt.T @ U.T))
 
         # construct rotation matrix
         R = Vt.T @ d @ U.T
@@ -349,13 +348,13 @@ class Denoise:
         self._log.info(f"Sampled motif RMSD: {rms:.2f}")
 
         # 2 rotate whole px0 by rotation matrix
-        atom_mask = atom_mask.cpu()
+        atom_mask = atom_mask.to(px0_motif.device)
         px0[~atom_mask] = 0  # convert nans to 0
         px0 = px0.reshape(-1, 3) - px0_motif_mean
         px0_ = px0 @ R
 
         # 3 put in same global position as xT
-        px0_ = px0_ + xT_motif_mean
+        px0_ = px0_ + torch.Tensor(xT_motif_mean).to(px0_motif.device)
         px0_ = px0_.reshape([L, n_atom, 3])
         px0_[~atom_mask] = float("nan")
         return torch.Tensor(px0_)
@@ -488,7 +487,7 @@ class Denoise:
         ca_deltas += self.potential_manager.get_guide_scale(t) * grad_ca
 
         # add the delta to the new frames
-        frames_next = torch.from_numpy(frames_next) + ca_deltas[:, None, :]  # translate
+        frames_next = frames_next + ca_deltas[:, None, :]  # translate
 
         fullatom_next = torch.full_like(xt, float("nan")).unsqueeze(0)
         fullatom_next[:, :, :3] = frames_next[None]
