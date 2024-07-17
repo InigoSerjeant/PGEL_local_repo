@@ -494,7 +494,7 @@ class IGSO3:
         differential equations. arXiv preprint arXiv:2011.13456.
         """
         # compute rotation vector corresponding to prediction of how r_t goes to r_0
-        R_0, R_t = torch.tensor(R_0), torch.tensor(R_t)
+        R_0, R_t = R_0.clone().detach(), R_t.clone().detach()
         R_0t = torch.einsum("...ij,...kj->...ik", R_t, R_0)
         R_0t_rotvec = torch.tensor(
             scipy_R.from_matrix(R_0t.cpu().numpy()).as_rotvec()

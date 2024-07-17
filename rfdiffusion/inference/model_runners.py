@@ -329,14 +329,14 @@ class Sampler:
             # Fully diffusing from points initialised at the origin
             # adjust size of input xt according to residue map
             xyz_mapped = torch.full((1,1,L_mapped,27,3), np.nan)
-            xyz_mapped[:, :, contig_map.hal_idx0, ...] = xyz_27[contig_map.ref_idx0,...]
-            xyz_motif_prealign = xyz_mapped.clone()
-            motif_prealign_com = xyz_motif_prealign[0,0,:,1].mean(dim=0)
-            self.motif_com = xyz_27[contig_map.ref_idx0,1].mean(dim=0)
+            #xyz_mapped[:, :, contig_map.hal_idx0, ...] = xyz_27[contig_map.ref_idx0,...]
+            #xyz_motif_prealign = xyz_mapped.clone()
+            #motif_prealign_com = xyz_motif_prealign[0,0,:,1].mean(dim=0)
+            #self.motif_com = xyz_27[contig_map.ref_idx0,1].mean(dim=0)
             xyz_mapped = get_init_xyz(xyz_mapped).squeeze()
             # adjust the size of the input atom map
             atom_mask_mapped = torch.full((L_mapped, 27), False)
-            atom_mask_mapped[contig_map.hal_idx0] = mask_27[contig_map.ref_idx0]
+            #atom_mask_mapped[contig_map.hal_idx0] = mask_27[contig_map.ref_idx0]
 
         # Diffuse the contig-mapped coordinates 
         if self.diffuser_conf.partial_T:
@@ -365,7 +365,7 @@ class Sampler:
             xyz_mapped,
             torch.clone(seq_t),
             atom_mask_mapped.squeeze(),
-            diffusion_mask=self.diffusion_mask.squeeze(),
+            #diffusion_mask=self.diffusion_mask.squeeze(),
             t_list=t_list)
         xT = fa_stack[-1].squeeze()[:,:14,:]
         xt = torch.clone(xT)
@@ -472,7 +472,7 @@ class Sampler:
 
         # Set timestep feature to 1 where diffusion mask is True, else 1-t/T
         timefeature = torch.zeros((L)).float()
-        timefeature[self.mask_str.squeeze()] = 1
+        timefeature[self.mask_str.squeeze()] = 1 - t/self.T ### before just 1
         timefeature[~self.mask_str.squeeze()] = 1 - t/self.T
         timefeature = timefeature[None,None,...,None]
 

@@ -307,7 +307,10 @@ class Denoise:
             xT.shape[1] == px0.shape[1]
         ), f"xT has shape {xT.shape} and px0 has shape {px0.shape}"
 
-        L, n_atom, _ = xT.shape  # A is number of atoms
+        if xT.shape[0] == 16:
+            L, n_atom, _ = px0.shape  # A is number of atoms
+        else:
+            L, n_atom, _ = xT.shape  # A is number of atoms
         atom_mask = ~torch.isnan(px0)
         # convert to numpy arrays
         px0 = px0
@@ -315,8 +318,14 @@ class Denoise:
         diffusion_mask = diffusion_mask.cpu().detach().numpy()
 
         # 1 centre motifs at origin and get rotation matrix
-        px0_motif = px0[diffusion_mask, :3].reshape(-1, 3)
-        xT_motif = xT[diffusion_mask, :3].reshape(-1, 3)
+        if px0.shape[0] == 16:
+            px0_motif = px0[:, :3].reshape(-1, 3)
+        else:
+            px0_motif = px0[diffusion_mask, :3].reshape(-1, 3)
+        if xT.shape[0] == 16:
+            xT_motif = xT[:, :3].reshape(-1, 3)
+        else:
+            xT_motif = xT[diffusion_mask, :3].reshape(-1, 3)
         px0_motif_mean = torch.clone(px0_motif.mean(0))  # need later
         xT_motif_mean = np.copy(xT_motif.mean(0))
 
@@ -354,8 +363,12 @@ class Denoise:
         px0_ = px0 @ R
 
         # 3 put in same global position as xT
-        px0_ = px0_ + torch.Tensor(xT_motif_mean).to(px0_motif.device)
-        px0_ = px0_.reshape([L, n_atom, 3])
+        if px0_.shape[0] == 16*n_atom:
+            px0_ = px0_ + torch.Tensor(xT_motif_mean[:16,...]).to(px0_motif.device)
+            px0_ = px0_.reshape([16, n_atom, 3])
+        else:
+            px0_ = px0_ + torch.Tensor(xT_motif_mean).to(px0_motif.device)
+            px0_ = px0_.reshape([L, n_atom, 3])
         px0_[~atom_mask] = float("nan")
         return torch.Tensor(px0_)
 
@@ -408,6 +421,7 @@ class Denoise:
         px0,
         t,
         diffusion_mask,
+        pdb_coords=None,
         fix_motif=True,
         align_motif=True,
         include_motif_sidechains=True,
@@ -442,15 +456,21 @@ class Denoise:
         ###############################
         ### Align pX0 onto Xt motif ###
         ###############################
-
-        if align_motif and diffusion_mask.any():
+        if align_motif and diffusion_mask.any() and pdb_coords.any() == None:
             px0 = self.align_to_xt_motif(px0, xt, diffusion_mask)
+        elif align_motif and diffusion_mask.any():
+            # might need to revisit this in case that HETATM are 'in the middle' of PDB file
+            original_roi_indices = range(8, 8+16)
+            px0[:,:4,:] = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask)
+            xt = self.align_to_xt_motif(xt, px0, diffusion_mask).detach()
+            #px0 = self.align_to_xt_motif(px0, xt, diffusion_mask)
         # xT_motif_aligned = self.align_to_xt_motif(px0, xt, diffusion_mask)
 
         px0 = px0.to(xt.device)
         # Now done with diffusion mask. if fix motif is False, just set diffusion mask to be all True, and all coordinates can diffuse
         if not fix_motif:
-            diffusion_mask[:] = False
+            diffusion_mask_ = torch.zeros_like(diffusion_mask)
+            diffusion_mask_[:] = False
 
         # get the next set of CA coordinates
         noise_scale_ca = self.noise_schedule_ca(t)
@@ -458,7 +478,7 @@ class Denoise:
             xt,
             px0,
             t,
-            diffusion_mask,
+            diffusion_mask=diffusion_mask_,
             crd_scale=self.crd_scale,
             beta_schedule=self.schedule,
             alphabar_schedule=self.alphabar_schedule,
@@ -473,7 +493,7 @@ class Denoise:
             t,
             diffuser=self.diffuser,
             so3_type=self.so3_type,
-            diffusion_mask=diffusion_mask,
+            diffusion_mask=diffusion_mask_,
             noise_scale=noise_scale_frame,
         )
 
@@ -481,7 +501,7 @@ class Denoise:
         # This can be moved to below where the full atom representation is calculated to allow for potentials involving sidechains
 
         grad_ca = self.get_potential_gradients(
-            xt.clone(), diffusion_mask=diffusion_mask
+            xt.clone(), diffusion_mask=diffusion_mask_
         )
 
         ca_deltas += self.potential_manager.get_guide_scale(t) * grad_ca
@@ -495,7 +515,11 @@ class Denoise:
         torsions_next = torch.zeros(1, 1)
 
         if include_motif_sidechains:
-            fullatom_next[:, diffusion_mask, :14] = xt[None, diffusion_mask]
+            fullatom_next[:, diffusion_mask_, :14] = xt[None, diffusion_mask_]
+
+        frames_next.detach_()
+        ca_deltas.detach_()
+        fullatom_next = fullatom_next.detach()
 
         return fullatom_next.squeeze()[:, :14, :], px0
 

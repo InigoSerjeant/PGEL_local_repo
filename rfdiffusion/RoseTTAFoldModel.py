@@ -98,11 +98,12 @@ class RoseTTAFoldModule(nn.Module):
         pair, state = self.templ_emb(t1d, t2d, alpha_t, xyz_t, pair, state, use_checkpoint=use_checkpoint)
         
         # Predict coordinates from given inputs
-        is_frozen_residue = motif_mask if self.freeze_track_motif else torch.zeros_like(motif_mask).bool()
+        #is_frozen_residue = motif_mask if self.freeze_track_motif else torch.zeros_like(motif_mask).bool()
+        is_frozen_residue = torch.zeros_like(motif_mask).bool()
         msa, pair, R, T, alpha_s, state = self.simulator(seq, msa_latent, msa_full, pair, xyz[:,:,:3],
                                                          state, idx, use_checkpoint=use_checkpoint,
                                                          motif_mask=is_frozen_residue)
-        
+
         if return_raw:
             # get last structure
             xyz = einsum('bnij,bnaj->bnai', R[-1], xyz[:,:,:3]-xyz[:,:,1].unsqueeze(-2)) + T[-1].unsqueeze(-2)
@@ -117,7 +118,8 @@ class RoseTTAFoldModule(nn.Module):
         if return_infer:
             # get last structure
             xyz = einsum('bnij,bnaj->bnai', R[-1], xyz[:,:,:3]-xyz[:,:,1].unsqueeze(-2)) + T[-1].unsqueeze(-2)
-            
+            T.detach_()
+            R.detach_()
             # get scalar plddt
             nbin = lddt.shape[1]
             bin_step = 1.0 / nbin

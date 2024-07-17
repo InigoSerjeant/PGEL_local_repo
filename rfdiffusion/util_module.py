@@ -304,6 +304,10 @@ class ComputeAllAtomCoords(nn.Module):
             RTframes.gather(2,self.base_indices[seq][...,None,None].repeat(1,1,1,4,4)), basexyzs
         )
 
+        self.base_indices.detach_()
+        self.RTs_in_base_frame.detach_()
+        self.xyzs_in_base_frame.detach_()
+
         if use_H:
             return RTframes, xyzs[...,:3]
         else:
