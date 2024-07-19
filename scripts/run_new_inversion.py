@@ -37,7 +37,7 @@ def make_deterministic(seed=0):
 @hydra.main(version_base=None, config_path="../config/inference", config_name="base")
 def main(conf: HydraConfig) -> None:
     log = logging.getLogger(__name__)
-    conf.inference.deterministic = True
+    conf.inference.deterministic = False
     if conf.inference.deterministic:
         make_deterministic()
 
@@ -103,8 +103,8 @@ def main(conf: HydraConfig) -> None:
         seq_stack = []
         plddt_stack = []
 
-        x_t = torch.clone(x_init)
-        seq_t = torch.clone(seq_init)
+        x_t = torch.clone(x_init).detach()
+        seq_t = torch.clone(seq_init).detach()
 
         def get_motif_limits(mask, seq):
             init_motifs = [i+1 for i in range(len(seq)-1) if not mask[0][i] and mask[0][i+1]]
@@ -137,7 +137,7 @@ def main(conf: HydraConfig) -> None:
             pair_prev = torch.clone(pair_prev_).clone().detach().requires_grad_(True)
             state_prev = torch.clone(state_prev_).clone().detach().requires_grad_(True)
         
-        optimiser = torch.optim.Adam([msa_prev, pair_prev, state_prev], lr=1e-3)
+        optimiser = torch.optim.Adam([msa_prev, pair_prev, state_prev], lr=1e-2)
             
         for param in sampler.model.parameters():
             param.requires_grad = False
@@ -155,6 +155,15 @@ def main(conf: HydraConfig) -> None:
             else:
                 B,N,L = xyz_t.shape[:3]
             
+            xyz_t.detach_()
+            msa_masked = msa_masked.detach()
+            msa_full = msa_full.detach()
+            seq_in = seq_in.detach()
+            xt_in = xt_in.detach()
+            idx_pdb = idx_pdb.detach()
+            t1d = t1d.detach()
+            t2d = t2d.detach()
+            alpha_t = alpha_t.detach()
             ##################################
             ######## Str Self Cond ###########
             ##################################
@@ -169,6 +178,9 @@ def main(conf: HydraConfig) -> None:
                     t2d_44   = torch.zeros_like(t2d[...,:44])
                 # No effect if t2d is only dim 44
                 t2d[...,:44] = t2d_44
+
+            t2d_44.detach_()
+            xyz_t.detach_()
 
             if sampler.symmetry is not None:
                 idx_pdb, sampler.chain_idx = sampler.symmetry.res_idx_procesing(res_idx=idx_pdb)
@@ -196,6 +208,8 @@ def main(conf: HydraConfig) -> None:
                                 motif_mask=sampler.diffusion_mask.squeeze().to(sampler.device))
 
             alpha = alpha.detach()
+            logits = logits.detach()
+            plddt = plddt.detach()
 
             if conf.inference.model_runner == 'SelfConditioning':
                 sampler.prev_pred = torch.clone(px0).detach()
@@ -214,7 +228,7 @@ def main(conf: HydraConfig) -> None:
                         xt=x_t,
                         px0=px0,
                         t=t,
-                        pdb_coords=pdb_coords,
+                        pdb_coords=pdb_coords.detach(),
                         diffusion_mask=sampler.mask_str.squeeze(),
                         align_motif=sampler.inf_conf.align_motif,
                         include_motif_sidechains=sampler.preprocess_conf.motif_sidechain_input,
@@ -249,13 +263,14 @@ def main(conf: HydraConfig) -> None:
             if sampler.symmetry is not None:
                 x_t_1, seq_t_1 = sampler.symmetry.apply_symmetry(x_t_1, seq_t_1)
 
+            x_t_1 = x_t_1.detach()
             x_t = torch.clone(x_t_1)
-            seq_t = torch.clone(seq_t_1)
+            seq_t = torch.clone(seq_t_1).detach()
 
-            px0_xyz_stack.append(torch.clone(px0))
+            px0_xyz_stack.append(torch.clone(px0).detach())
             denoised_xyz_stack.append(x_t)
             seq_stack.append(seq_t)
-            plddt_stack.append(plddt[0])  # remove singleton leading dimension
+            plddt_stack.append(plddt[0].detach())  # remove singleton leading dimension
 
             # Optimising embeddings
             
@@ -272,13 +287,14 @@ def main(conf: HydraConfig) -> None:
             ##print(torch.count_nonzero(pair_prev))
             ##print(torch.count_nonzero(msa_prev))
 
-            if loss.item() < 0.4 and t == 2:
+            if t == 2:
                 torch.save(state_prev[:,roi_indices,:], f'state_{i_des}.pt')
                 torch.save(pair_prev[:,roi_indices[0]:roi_indices[-1]+1,roi_indices[0]:roi_indices[-1]+1,:], f'pair_{i_des}.pt')
                 torch.save(msa_prev[:,roi_indices,:], f'msa_{i_des}.pt')
 
             torch.cuda.empty_cache()
-
+            px0.detach_()
+            
             print(f'Timestep {t}, loss: {loss.item()}')
 
         # Flip order for better visualization in pymol
