@@ -37,7 +37,7 @@ def make_deterministic(seed=0):
 @hydra.main(version_base=None, config_path="../config/inference", config_name="base")
 def main(conf: HydraConfig) -> None:
     log = logging.getLogger(__name__)
-    conf.inference.deterministic = False
+    conf.inference.deterministic = True
     if conf.inference.deterministic:
         make_deterministic()
 
@@ -77,7 +77,8 @@ def main(conf: HydraConfig) -> None:
     grad_scaler = GradScaler()
     len_roi_indices = 16
     original_roi_indices = range(8, 8+len_roi_indices)
-
+    #original_roi_indices = range(99, 99+len_roi_indices)
+    
     # Initialise the msa, pair, and state embeddings
     msa_prev = torch.zeros((1, len_roi_indices, 256), device=sampler.device, requires_grad=True)
     pair_prev = torch.zeros((1, len_roi_indices, len_roi_indices, 128), device=sampler.device, requires_grad=True)
@@ -102,8 +103,8 @@ def main(conf: HydraConfig) -> None:
         seq_stack = []
         plddt_stack = []
 
-        x_t = torch.clone(x_init).detach()
-        seq_t = torch.clone(seq_init).detach()
+        x_t = torch.clone(x_init)
+        seq_t = torch.clone(seq_init)
 
         def get_motif_limits(mask, seq):
             init_motifs = [i+1 for i in range(len(seq)-1) if not mask[0][i] and mask[0][i+1]]
@@ -136,7 +137,7 @@ def main(conf: HydraConfig) -> None:
             pair_prev = torch.clone(pair_prev_).clone().detach().requires_grad_(True)
             state_prev = torch.clone(state_prev_).clone().detach().requires_grad_(True)
         
-        optimiser = torch.optim.Adam([msa_prev, pair_prev, state_prev], lr=1e-4)
+        optimiser = torch.optim.Adam([msa_prev, pair_prev, state_prev], lr=1e-3)
             
         for param in sampler.model.parameters():
             param.requires_grad = False
@@ -154,16 +155,6 @@ def main(conf: HydraConfig) -> None:
             else:
                 B,N,L = xyz_t.shape[:3]
             
-            xyz_t.detach_()
-            msa_masked = msa_masked.detach()
-            msa_full = msa_full.detach()
-            seq_in = seq_in.detach()
-            xt_in = xt_in.detach()
-            idx_pdb = idx_pdb.detach()
-            t1d = t1d.detach()
-            t2d = t2d.detach()
-            alpha_t = alpha_t.detach()
-
             ##################################
             ######## Str Self Cond ###########
             ##################################
@@ -182,16 +173,13 @@ def main(conf: HydraConfig) -> None:
             if sampler.symmetry is not None:
                 idx_pdb, sampler.chain_idx = sampler.symmetry.res_idx_procesing(res_idx=idx_pdb)
 
-            t2d_44.detach_()
-            xyz_t.detach_()
-
             ####################
             ### Forward Pass ###
             ####################
 
 
             
-            msprev, pprev, px0, sprev, alpha, logits, plddt = sampler.model(msa_masked,
+            _, _, px0, _, alpha, logits, plddt = sampler.model(msa_masked,
                                 msa_full,
                                 seq_in,
                                 xt_in,
@@ -206,12 +194,8 @@ def main(conf: HydraConfig) -> None:
                                 t=torch.tensor(t),
                                 return_infer=True,
                                 motif_mask=sampler.diffusion_mask.squeeze().to(sampler.device))
-            msprev = msprev.detach()
-            pprev = pprev.detach()
-            sprev = sprev.detach()
+
             alpha = alpha.detach()
-            logits = logits.detach()
-            plddt = plddt.detach()
 
             if conf.inference.model_runner == 'SelfConditioning':
                 sampler.prev_pred = torch.clone(px0).detach()
@@ -222,7 +206,7 @@ def main(conf: HydraConfig) -> None:
             ###########################
             ### Generate Next Input ###
             ###########################
-            
+
             if conf.inference.model_runner == 'SelfConditioning':
                 seq_t_1 = torch.clone(seq_init)
                 if t > final_step:
@@ -236,7 +220,6 @@ def main(conf: HydraConfig) -> None:
                         include_motif_sidechains=sampler.preprocess_conf.motif_sidechain_input,
                         fix_motif=False,
                     )
-                    seq_t_1 = seq_t_1.detach()
                     x_t_1 = x_t_1.detach()
                     sampler._log.info(
                             f'Timestep {t}, input to next step: { seq2chars(torch.argmax(seq_t_1, dim=-1).tolist())}')
@@ -266,33 +249,34 @@ def main(conf: HydraConfig) -> None:
             if sampler.symmetry is not None:
                 x_t_1, seq_t_1 = sampler.symmetry.apply_symmetry(x_t_1, seq_t_1)
 
-            x_t = torch.clone(x_t_1).detach()
-            seq_t = torch.clone(seq_t_1).detach()
-            x_t_1 = x_t_1.detach()
+            x_t = torch.clone(x_t_1)
+            seq_t = torch.clone(seq_t_1)
 
-            px0_xyz_stack.append(torch.clone(px0).detach())
+            px0_xyz_stack.append(torch.clone(px0))
             denoised_xyz_stack.append(x_t)
             seq_stack.append(seq_t)
-            plddt_stack.append(plddt[0].detach())  # remove singleton leading dimension
+            plddt_stack.append(plddt[0])  # remove singleton leading dimension
 
             # Optimising embeddings
             
             optimiser.zero_grad()
             #print(px0[roi_indices,:3,:])
             #print(pdb_coords[original_roi_indices,:3,:])
-            print(torch.abs(px0[roi_indices,:4,:].to(sampler.device) - pdb_coords[original_roi_indices,:4,:].detach().to(sampler.device)))
+            ## print(torch.abs(px0[roi_indices,:4,:].to(sampler.device) - pdb_coords[original_roi_indices,:4,:].detach().to(sampler.device)))
             #print(pdb_coords[original_roi_indices,:14,:].to(sampler.device))
             loss = loss_fn(px0[roi_indices,:4,:].to(sampler.device), pdb_coords[original_roi_indices,:4,:].detach().to(sampler.device)) #+ 10 * torch.linalg.norm(pair_prev[~roi_indices].flatten(), ord=1) + 10 * torch.linalg.norm(state_prev[~roi_indices].flatten(), ord=1) + 10 * torch.linalg.norm(msa_prev[~roi_indices].flatten(), ord=1)
             torch.autograd.set_detect_anomaly(True)
             loss.backward()
             optimiser.step()
-            print(state_prev[:,roi_indices,:])
-            print(torch.count_nonzero(pair_prev))
-            print(torch.count_nonzero(msa_prev))
+            ##print(state_prev[:, roi_indices[0]-1:roi_indices[-1]+1, :])
+            ##print(torch.count_nonzero(pair_prev))
+            ##print(torch.count_nonzero(msa_prev))
 
+            if loss.item() < 0.4 and t == 2:
+                torch.save(state_prev[:,roi_indices,:], f'state_{i_des}.pt')
+                torch.save(pair_prev[:,roi_indices[0]:roi_indices[-1]+1,roi_indices[0]:roi_indices[-1]+1,:], f'pair_{i_des}.pt')
+                torch.save(msa_prev[:,roi_indices,:], f'msa_{i_des}.pt')
 
-            # Is there a better way to do this? 
-            px0.detach_()
             torch.cuda.empty_cache()
 
             print(f'Timestep {t}, loss: {loss.item()}')

@@ -54,8 +54,8 @@ def get_next_frames(xt, px0, t, diffuser, so3_type, diffusion_mask, noise_scale=
     R_t, Ca_t = rigid_from_3_points(N_t, Ca_t, C_t)
 
     # this must be to normalize them or something
-    R_0 = torch.Tensor(scipy_R.from_matrix(R_0.squeeze().detach().numpy()).as_matrix()) # revisit
-    R_t = torch.Tensor(scipy_R.from_matrix(R_t.squeeze().detach().numpy()).as_matrix()) # revisit
+    R_0 = R_0.squeeze() # revisit
+    R_t = R_t.squeeze() # revisit
 
     L = R_t.shape[0]
     all_rot_transitions = torch.clone(torch.broadcast_to(torch.eye(3), (L, 3, 3)))
@@ -461,6 +461,7 @@ class Denoise:
         elif align_motif and diffusion_mask.any():
             # might need to revisit this in case that HETATM are 'in the middle' of PDB file
             original_roi_indices = range(8, 8+16)
+            #original_roi_indices = range(99, 99+16)
             px0[:,:4,:] = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask)
             xt = self.align_to_xt_motif(xt, px0, diffusion_mask).detach()
             #px0 = self.align_to_xt_motif(px0, xt, diffusion_mask)
@@ -516,10 +517,6 @@ class Denoise:
 
         if include_motif_sidechains:
             fullatom_next[:, diffusion_mask_, :14] = xt[None, diffusion_mask_]
-
-        frames_next.detach_()
-        ca_deltas.detach_()
-        fullatom_next = fullatom_next.detach()
 
         return fullatom_next.squeeze()[:, :14, :], px0
 
