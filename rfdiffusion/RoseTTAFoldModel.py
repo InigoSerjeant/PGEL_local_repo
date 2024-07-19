@@ -81,7 +81,14 @@ class RoseTTAFoldModule(nn.Module):
             msa_prev = torch.zeros_like(msa_latent[:,0])
             pair_prev = torch.zeros_like(pair)
             state_prev = torch.zeros_like(state)
-        msa_recycle, pair_recycle, state_recycle = self.recycle(seq, msa_prev, pair_prev, xyz, state_prev)
+        msa_mask = torch.zeros_like(msa_latent[:,0])
+        pair_mask = torch.zeros_like(pair)
+        state_mask = torch.zeros_like(state)
+        msa_mask[:, motif_mask, :] = 1
+        pair_mask[:, motif_mask, motif_mask, :] = 1
+        state_mask[:, motif_mask, :] = 1
+
+        msa_recycle, pair_recycle, state_recycle = self.recycle(seq, msa_prev * msa_mask, pair_prev * pair_mask, xyz, state_prev * state_mask)
         msa_latent[:,0] = msa_latent[:,0] + msa_recycle.reshape(B,L,-1)
         pair = pair + pair_recycle
         state = state + state_recycle
@@ -118,8 +125,7 @@ class RoseTTAFoldModule(nn.Module):
         if return_infer:
             # get last structure
             xyz = einsum('bnij,bnaj->bnai', R[-1], xyz[:,:,:3]-xyz[:,:,1].unsqueeze(-2)) + T[-1].unsqueeze(-2)
-            T.detach_()
-            R.detach_()
+            
             # get scalar plddt
             nbin = lddt.shape[1]
             bin_step = 1.0 / nbin
