@@ -81,9 +81,9 @@ class RoseTTAFoldModule(nn.Module):
             msa_prev = torch.zeros_like(msa_latent[:,0])
             pair_prev = torch.zeros_like(pair)
             state_prev = torch.zeros_like(state)
-        msa_mask = torch.zeros_like(msa_latent[:,0])
-        pair_mask = torch.zeros_like(pair)
-        state_mask = torch.zeros_like(state)
+        msa_mask = torch.zeros_like(msa_latent[:,0], dtype=bool)
+        pair_mask = torch.zeros_like(pair, dtype=bool)
+        state_mask = torch.zeros_like(state, dtype=bool)
         msa_mask[:, motif_mask, :] = 1
         pair_mask[:, motif_mask, motif_mask, :] = 1
         state_mask[:, motif_mask, :] = 1
@@ -92,7 +92,12 @@ class RoseTTAFoldModule(nn.Module):
         msa_latent[:,0] = msa_latent[:,0] + msa_recycle.reshape(B,L,-1)
         pair = pair + pair_recycle
         state = state + state_recycle
-
+        msa_recycle = msa_recycle.detach()
+        pair_recycle = pair_recycle.detach()
+        state_recycle = state_recycle.detach()
+        msa_prev = msa_prev.detach()
+        pair_prev = pair_prev.detach()
+        state_prev = state_prev.detach()
 
         # Get timestep embedding (if using)
         if hasattr(self, 'timestep_embedder'):
@@ -102,14 +107,23 @@ class RoseTTAFoldModule(nn.Module):
             t1d = torch.cat([t1d, time_emb[None,None,...].repeat(1,n_tmpl,1,1)], dim=-1)
 
         # add template embedding
-        pair, state = self.templ_emb(t1d, t2d, alpha_t, xyz_t, pair, state, use_checkpoint=use_checkpoint)
-        
+        pair_, state_ = self.templ_emb(t1d, t2d, alpha_t, xyz_t, pair * (~pair_mask), state * (~state_mask), use_checkpoint=use_checkpoint)
+        #pair, state = self.templ_emb(t1d, t2d, alpha_t, xyz_t, pair, state, use_checkpoint=use_checkpoint)
+        pair[~pair_mask] = pair_[~pair_mask]
+        state[~state_mask] = state_[~state_mask]
+
         # Predict coordinates from given inputs
         #is_frozen_residue = motif_mask if self.freeze_track_motif else torch.zeros_like(motif_mask).bool()
         is_frozen_residue = torch.zeros_like(motif_mask).bool()
-        msa, pair, R, T, alpha_s, state = self.simulator(seq, msa_latent, msa_full, pair, xyz[:,:,:3],
+        msa_, pair_, R, T, alpha_s, state_ = self.simulator(seq, msa_latent, msa_full, pair, xyz[:,:,:3],
                                                          state, idx, use_checkpoint=use_checkpoint,
                                                          motif_mask=is_frozen_residue)
+        msa_latent = msa_latent.detach()
+        msa_full = msa_full.detach()
+        msa_ = msa_.detach()
+        pair_ = pair_.detach()
+        state_ = state_.detach()
+        alpha_s = alpha_s.detach()
 
         if return_raw:
             # get last structure
@@ -117,15 +131,18 @@ class RoseTTAFoldModule(nn.Module):
             return msa[:,0], pair, xyz, state, alpha_s[-1]
 
         # predict masked amino acids
-        logits_aa = self.aa_pred(msa)
-        
+        logits_aa = self.aa_pred(msa_)
+        logits_aa = logits_aa.detach()
         # Predict LDDT
-        lddt = self.lddt_pred(state)
+        lddt = self.lddt_pred(state_)
+        lddt = lddt.detach()
+
 
         if return_infer:
             # get last structure
             xyz = einsum('bnij,bnaj->bnai', R[-1], xyz[:,:,:3]-xyz[:,:,1].unsqueeze(-2)) + T[-1].unsqueeze(-2)
-            
+            R = R.detach()
+            T = T.detach()
             # get scalar plddt
             nbin = lddt.shape[1]
             bin_step = 1.0 / nbin
@@ -133,7 +150,7 @@ class RoseTTAFoldModule(nn.Module):
             pred_lddt = nn.Softmax(dim=1)(lddt)
             pred_lddt = torch.sum(lddt_bins[None,:,None]*pred_lddt, dim=1)
 
-            return msa[:,0], pair, xyz, state, alpha_s[-1], logits_aa.permute(0,2,1), pred_lddt
+            return msa_[:,0], pair_, xyz, state_, alpha_s[-1], logits_aa.permute(0,2,1), pred_lddt
 
         #
         # predict distogram & orientograms
