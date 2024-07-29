@@ -87,6 +87,10 @@ def get_next_frames(xt, px0, t, diffuser, so3_type, diffusion_mask, noise_scale=
         + Ca_t.squeeze()[:, None, None, ...]
     )
 
+    next_crds = next_crds.detach()
+    px0 = px0.detach()
+    all_rot_transitions = all_rot_transitions.detach()
+
     # (L,3,3) set of backbone coordinates with slight rotation
     return next_crds.squeeze(1)
 
@@ -164,6 +168,9 @@ def get_next_ca(
         xt, px0, t, beta_schedule=beta_schedule, alphabar_schedule=alphabar_schedule
     )
 
+    mu = mu.detach()
+    sigma = sigma.detach()
+
     sampled_crds = torch.normal(mu, torch.sqrt(sigma * noise_scale))
     delta = sampled_crds - xt[:, 1, :]  # check sign of this is correct
 
@@ -172,6 +179,7 @@ def get_next_ca(
         delta[diffusion_mask, ...] = 0
 
     out_crds = xt + delta[:, None, :]
+    px0 = px0.detach()
 
     return out_crds / crd_scale, delta / crd_scale
 
@@ -425,6 +433,7 @@ class Denoise:
         fix_motif=True,
         align_motif=True,
         include_motif_sidechains=True,
+        original_roi_indices=None,
     ):
         """
         Wrapper function to take px0, xt and t, and to produce xt-1
@@ -441,11 +450,15 @@ class Denoise:
 
             diffusion_mask (torch.tensor, required): Mask for structure diffusion
 
+            pdb_coords (torch.Tensor): PDB coordinates of region of interest
+
             fix_motif (bool): Fix the motif structure
 
             align_motif (bool): Align the model's prediction of the motif to the input motif
 
             include_motif_sidechains (bool): Provide sidechains of the fixed motif to the model
+
+            original_roi_indices (list): Required for inversion but not for original RFdiffusion
         """
 
         get_allatom = ComputeAllAtomCoords().to(device=xt.device)
@@ -459,14 +472,9 @@ class Denoise:
         if align_motif and diffusion_mask.any() and pdb_coords.any() == None:
             px0 = self.align_to_xt_motif(px0, xt, diffusion_mask)
         elif align_motif and diffusion_mask.any():
-            # might need to revisit this in case that HETATM are 'in the middle' of PDB file
-            original_roi_indices = range(8, 8+16)
-            #original_roi_indices = range(99, 99+16)
             px0[:,:4,:] = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask)
-            xt = self.align_to_xt_motif(xt, px0, diffusion_mask).detach()
-            #px0 = self.align_to_xt_motif(px0, xt, diffusion_mask)
-        # xT_motif_aligned = self.align_to_xt_motif(px0, xt, diffusion_mask)
-
+            xt = self.align_to_xt_motif(xt, px0.detach(), diffusion_mask).detach()
+ 
         px0 = px0.to(xt.device)
         # Now done with diffusion mask. if fix motif is False, just set diffusion mask to be all True, and all coordinates can diffuse
         if not fix_motif:
@@ -477,7 +485,7 @@ class Denoise:
         noise_scale_ca = self.noise_schedule_ca(t)
         _, ca_deltas = get_next_ca(
             xt,
-            px0,
+            px0.detach(),
             t,
             diffusion_mask=diffusion_mask_,
             crd_scale=self.crd_scale,
@@ -490,7 +498,7 @@ class Denoise:
         noise_scale_frame = self.noise_schedule_frame(t)
         frames_next = get_next_frames(
             xt,
-            px0,
+            px0.detach(),
             t,
             diffuser=self.diffuser,
             so3_type=self.so3_type,
@@ -498,13 +506,15 @@ class Denoise:
             noise_scale=noise_scale_frame,
         )
 
+        frames_next = frames_next.detach()
+        ca_deltas = ca_deltas.detach()
         # Apply gradient step from guiding potentials
         # This can be moved to below where the full atom representation is calculated to allow for potentials involving sidechains
 
         grad_ca = self.get_potential_gradients(
             xt.clone(), diffusion_mask=diffusion_mask_
         )
-
+        grad_ca = grad_ca.detach()
         ca_deltas += self.potential_manager.get_guide_scale(t) * grad_ca
 
         # add the delta to the new frames
@@ -517,6 +527,7 @@ class Denoise:
 
         if include_motif_sidechains:
             fullatom_next[:, diffusion_mask_, :14] = xt[None, diffusion_mask_]
+        fullatom_next = fullatom_next.detach()
 
         return fullatom_next.squeeze()[:, :14, :], px0
 
