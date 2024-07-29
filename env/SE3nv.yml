@@ -6,12 +6,12 @@ channels:
   - dglteam
   - nvidia
 dependencies:
-  - python=3.9
-  - pytorch=1.9
+  - python
+  - pytorch::pytorch
   - torchaudio
-  - torchvision
-  - cudatoolkit=11.1
-  - dgl-cuda11.1
+  - pytorch::torchvision
+  - nvidia::cudatoolkit=11.1 # changed to 11.2
+  - dgl-cuda11.1 # installed via commands from doc for pytorch 2.3x
   - pip
   - pip:
     - hydra-core
