@@ -97,6 +97,10 @@ def main(conf: HydraConfig) -> None:
 
         if i_des != design_startnum:
             x_init, seq_init = sampler.sample_init()
+            prev_roi_indices = torch.clone(roi_indices)
+        else:
+            prev_roi_indices = torch.arange(len_roi_indices)
+
         denoised_xyz_stack = []
         px0_xyz_stack = []
         seq_stack = []
@@ -104,42 +108,25 @@ def main(conf: HydraConfig) -> None:
 
         x_t = torch.clone(x_init).detach()
         seq_t = torch.clone(seq_init).detach()
-
-        def get_motif_limits(mask, seq):
-
-            if sum(mask[0]) == len(seq):
-                return [0], [len(seq)-1]
-
-            init_motifs = [i+1 for i in range(len(seq)-1) if not mask[0][i] and mask[0][i+1]]
-            end_motifs = [i for i in range(len(seq)-1) if mask[0][i] and not mask[0][i+1]]
-
-            return init_motifs, end_motifs
+        roi_indices = sampler.mask_seq.nonzero()[:, 1]
         
-        init_motifs, end_motifs = get_motif_limits(torch.clone(sampler.mask_seq).detach().numpy(), seq_t) 
-        if i_des != design_startnum:
-            init_prev, end_prev = roi_indices[0], roi_indices[-1]
-        else:
-            init_prev, end_prev = 0, len_roi_indices-1
-        roi_indices = range(init_motifs[0], end_motifs[0]+1) # for now it only works for one motif, so index 0
-
-        # Adapting embeddings to new sequence
         msa_prev_ = torch.zeros((msa_prev.shape[0], seq_t.shape[0], msa_prev.shape[-1]), device=sampler.device)
         pair_prev_ = torch.zeros((pair_prev.shape[0], seq_t.shape[0], seq_t.shape[0], pair_prev.shape[-1]), device=sampler.device)
         state_prev_ = torch.zeros((state_prev.shape[0], seq_t.shape[0], state_prev.shape[-1]), device=sampler.device)
+        
+        msa_prev_[:, roi_indices,:] = msa_prev[:, prev_roi_indices,:]
+        pair_prev_[:, roi_indices.reshape(-1,1), roi_indices, :] = pair_prev[:, prev_roi_indices.reshape(-1,1), prev_roi_indices, :]
+        state_prev_[:, roi_indices,:] = state_prev[:, prev_roi_indices,:]
 
-        msa_prev_[:, roi_indices[0]:roi_indices[-1]+1,:] = msa_prev[:, init_prev:end_prev+1, :]
-        pair_prev_[:, roi_indices[0]:roi_indices[-1]+1, roi_indices[0]:roi_indices[-1]+1,:] = pair_prev[:, init_prev:end_prev+1, init_prev:end_prev+1, :]
-        state_prev_[:, roi_indices[0]:roi_indices[-1]+1,:] = state_prev[:, init_prev:end_prev+1, :]
+        msa_prev = torch.clone(msa_prev_).clone().detach()
+        pair_prev = torch.clone(pair_prev_).clone().detach()
+        state_prev = torch.clone(state_prev_).clone().detach()
 
         if sampler.inf_conf.inversion_train:
-            msa_prev = torch.clone(msa_prev_).clone().detach().requires_grad_(True)
-            pair_prev = torch.clone(pair_prev_).clone().detach().requires_grad_(True)
-            state_prev = torch.clone(state_prev_).clone().detach().requires_grad_(True)
-            optimiser = torch.optim.SGD([msa_prev, pair_prev, state_prev], lr=2e-3)
-        else:
-            msa_prev = msa_prev_
-            pair_prev = pair_prev_
-            state_prev = state_prev_
+            msa_prev.requires_grad_(True)
+            pair_prev.requires_grad_(True)
+            state_prev.requires_grad_(True)
+            optimiser = torch.optim.SGD([msa_prev, pair_prev, state_prev], lr=5e-3)
             
         for param in sampler.model.parameters():
             param.requires_grad = False
@@ -267,14 +254,14 @@ def main(conf: HydraConfig) -> None:
                 optimiser.zero_grad()
                 loss.backward()
                 optimiser.step()
-            print(state_prev[:, roi_indices[0]-1:roi_indices[-1]+1, :])
+            print(state_prev[:, roi_indices, :])
             print(torch.count_nonzero(pair_prev))
             print(torch.count_nonzero(msa_prev))
 
             if t == 1 and sampler.inf_conf.inversion_train:
-                torch.save(state_prev[:,roi_indices,:], f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[-8:-4]}.pt')
-                torch.save(pair_prev[:,roi_indices[0]:roi_indices[-1]+1,roi_indices[0]:roi_indices[-1]+1,:], f'learnt_embeddings/pair_{sampler.inf_conf.input_pdb[-8:-4]}.pt')
-                torch.save(msa_prev[:,roi_indices,:], f'learnt_embeddings/msa_{sampler.inf_conf.input_pdb[-8:-4]}.pt')
+                torch.save(state_prev[:, roi_indices, :], f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[-8:-4]}.pt')
+                torch.save(pair_prev[:, roi_indices.reshape(-1,1), roi_indices, :], f'learnt_embeddings/pair_{sampler.inf_conf.input_pdb[-8:-4]}.pt')
+                torch.save(msa_prev[:, roi_indices, :], f'learnt_embeddings/msa_{sampler.inf_conf.input_pdb[-8:-4]}.pt')
                 print(loss_list)
 
             torch.cuda.empty_cache()
