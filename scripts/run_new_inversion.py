@@ -109,13 +109,17 @@ def main(conf: HydraConfig) -> None:
         x_t = torch.clone(x_init).detach()
         seq_t = torch.clone(seq_init).detach()
         roi_indices = sampler.mask_seq.nonzero()[:, 1]
+
+        msa_prev.detach_()
+        pair_prev.detach_()
+        state_prev.detach_()
         
         msa_prev_ = torch.zeros((msa_prev.shape[0], seq_t.shape[0], msa_prev.shape[-1]), device=sampler.device)
         pair_prev_ = torch.zeros((pair_prev.shape[0], seq_t.shape[0], seq_t.shape[0], pair_prev.shape[-1]), device=sampler.device)
         state_prev_ = torch.zeros((state_prev.shape[0], seq_t.shape[0], state_prev.shape[-1]), device=sampler.device)
-        
+
         msa_prev_[:, roi_indices,:] = msa_prev[:, prev_roi_indices,:]
-        pair_prev_[:, roi_indices.reshape(-1,1), roi_indices, :] = pair_prev[:, prev_roi_indices.reshape(-1,1), prev_roi_indices, :]
+        pair_prev_[:, roi_indices, roi_indices, :] = pair_prev[:, prev_roi_indices, prev_roi_indices, :]
         state_prev_[:, roi_indices,:] = state_prev[:, prev_roi_indices,:]
 
         msa_prev = torch.clone(msa_prev_).clone().detach()
@@ -126,7 +130,7 @@ def main(conf: HydraConfig) -> None:
             msa_prev.requires_grad_(True)
             pair_prev.requires_grad_(True)
             state_prev.requires_grad_(True)
-            optimiser = torch.optim.SGD([msa_prev, pair_prev, state_prev], lr=5e-3)
+            optimiser = torch.optim.SGD([msa_prev, pair_prev, state_prev], lr=3e-3)
             
         for param in sampler.model.parameters():
             param.requires_grad = False
@@ -135,7 +139,7 @@ def main(conf: HydraConfig) -> None:
         for t in range(int(sampler.t_step_input), sampler.inf_conf.final_step - 1, -1):
             final_step = sampler.inf_conf.final_step
             msa_masked, msa_full, seq_in, xt_in, idx_pdb, t1d, t2d, xyz_t, alpha_t = sampler._preprocess(seq_t, x_t, t)
-            if t == int(sampler.t_step_input):
+            if t == int(sampler.t_step_input) and i_des == 0:
                 pdb_coords = sampler.target_feats['xyz_27'] - torch.nanmean(sampler.target_feats['xyz_27'][original_roi_indices,:4,:], dim=(0,1)).view(1,1,3)
             if conf.inference.model_runner == 'default':
                 N,L = msa_masked.shape[:2]
@@ -202,6 +206,7 @@ def main(conf: HydraConfig) -> None:
             plddt = plddt.detach()
             print(f'pLDDT: {plddt.mean()}')
             print(plddt[0,roi_indices])
+            print(f'pLDDT motif: {plddt[0,roi_indices].mean()}')
             if conf.inference.model_runner == 'SelfConditioning':
                 sampler.prev_pred = torch.clone(px0).detach()
 
@@ -225,6 +230,7 @@ def main(conf: HydraConfig) -> None:
                         include_motif_sidechains=sampler.preprocess_conf.motif_sidechain_input,
                         fix_motif=False,
                         original_roi_indices=original_roi_indices,
+                        training=sampler.inf_conf.inversion_train,
                     )
                     x_t_1 = x_t_1.detach()
                     sampler._log.info(
@@ -247,16 +253,15 @@ def main(conf: HydraConfig) -> None:
             plddt_stack.append(plddt[0].detach())  # remove singleton leading dimension
 
             # Optimising embeddings
-            
             loss = loss_fn(px0[roi_indices,:4,:].to(sampler.device), pdb_coords[original_roi_indices,:4,:].detach().to(sampler.device))
             loss_list.append(loss.item())
             if sampler.inf_conf.inversion_train:
                 optimiser.zero_grad()
                 loss.backward()
                 optimiser.step()
-            print(state_prev[:, roi_indices, :])
-            print(torch.count_nonzero(pair_prev))
-            print(torch.count_nonzero(msa_prev))
+            #print(state_prev[:, roi_indices, :])
+            #print(torch.count_nonzero(pair_prev))
+            #print(torch.count_nonzero(msa_prev))
 
             if t == 1 and sampler.inf_conf.inversion_train:
                 torch.save(state_prev[:, roi_indices, :], f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[-8:-4]}.pt')

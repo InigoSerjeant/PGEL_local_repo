@@ -75,20 +75,24 @@ class RoseTTAFoldModule(nn.Module):
         # Get embeddings
         msa_latent, pair, state = self.latent_emb(msa_latent, seq, idx)
         msa_full = self.full_emb(msa_full, seq, idx)
+        roi_indices = motif_mask.nonzero()
 
         # Do recycling
         if msa_prev == None:
             msa_prev = torch.zeros_like(msa_latent[:,0])
             pair_prev = torch.zeros_like(pair)
             state_prev = torch.zeros_like(state)
-        msa_mask = torch.zeros_like(msa_latent[:,0], dtype=bool)
-        pair_mask = torch.zeros_like(pair, dtype=bool)
-        state_mask = torch.zeros_like(state, dtype=bool)
+        msa_mask = torch.zeros_like(msa_latent[:,0], dtype=bool).requires_grad_(False)
+        pair_mask = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
+        state_mask = torch.zeros_like(state, dtype=bool).requires_grad_(False)
         msa_mask[:, motif_mask, :] = 1
         pair_mask[:, motif_mask, motif_mask, :] = 1
         state_mask[:, motif_mask, :] = 1
 
         msa_recycle, pair_recycle, state_recycle = self.recycle(seq, msa_prev * msa_mask, pair_prev * pair_mask, xyz, state_prev * state_mask)
+        pair_mask = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
+        pair_mask[:, roi_indices.reshape(-1,1), roi_indices.reshape(1,-1), :] = 1
+
         msa_latent[:,0] = msa_latent[:,0] + msa_recycle.reshape(B,L,-1)
         pair = pair + pair_recycle
         state = state + state_recycle
