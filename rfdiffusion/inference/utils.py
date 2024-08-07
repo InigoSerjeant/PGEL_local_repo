@@ -298,7 +298,7 @@ class Denoise:
     def idx2steps(self):
         return self.decode_scheduler.idx2steps.numpy()
 
-    def align_to_xt_motif(self, px0, xT, diffusion_mask, eps=1e-6):
+    def align_to_xt_motif(self, px0, xT, diffusion_mask, len_original_roi_indices=None, eps=1e-6):
         """
         Need to align px0 to motif in xT. This is to permit the swapping of residue positions in the px0 motif for the true coordinates.
         First, get rotation matrix from px0 to xT for the motif residues.
@@ -315,7 +315,7 @@ class Denoise:
             xT.shape[1] == px0.shape[1]
         ), f"xT has shape {xT.shape} and px0 has shape {px0.shape}"
 
-        if xT.shape[0] == 16:
+        if xT.shape[0] == len_original_roi_indices:
             L, n_atom, _ = px0.shape  # A is number of atoms
         else:
             L, n_atom, _ = xT.shape  # A is number of atoms
@@ -326,11 +326,11 @@ class Denoise:
         diffusion_mask = diffusion_mask.cpu().detach().numpy()
 
         # 1 centre motifs at origin and get rotation matrix
-        if px0.shape[0] == 16:
+        if px0.shape[0] == len_original_roi_indices:
             px0_motif = px0[:, :3].reshape(-1, 3)
         else:
             px0_motif = px0[diffusion_mask, :3].reshape(-1, 3)
-        if xT.shape[0] == 16:
+        if xT.shape[0] == len_original_roi_indices:
             xT_motif = xT[:, :3].reshape(-1, 3)
         else:
             xT_motif = xT[diffusion_mask, :3].reshape(-1, 3)
@@ -371,9 +371,9 @@ class Denoise:
         px0_ = px0 @ R
 
         # 3 put in same global position as xT
-        if px0_.shape[0] == 16*n_atom:
-            px0_ = px0_ + torch.Tensor(xT_motif_mean[:16,...]).to(px0_motif.device)
-            px0_ = px0_.reshape([16, n_atom, 3])
+        if px0_.shape[0] == len_original_roi_indices * n_atom:
+            px0_ = px0_ + torch.Tensor(xT_motif_mean[:len_original_roi_indices,...]).to(px0_motif.device)
+            px0_ = px0_.reshape([len_original_roi_indices, n_atom, 3])
         else:
             px0_ = px0_ + torch.Tensor(xT_motif_mean).to(px0_motif.device)
             px0_ = px0_.reshape([L, n_atom, 3])
@@ -434,6 +434,7 @@ class Denoise:
         align_motif=True,
         include_motif_sidechains=True,
         original_roi_indices=None,
+        training=True,
     ):
         """
         Wrapper function to take px0, xt and t, and to produce xt-1
@@ -459,6 +460,9 @@ class Denoise:
             include_motif_sidechains (bool): Provide sidechains of the fixed motif to the model
 
             original_roi_indices (list): Required for inversion but not for original RFdiffusion
+
+            training (bool): Embedding learning process
+
         """
 
         get_allatom = ComputeAllAtomCoords().to(device=xt.device)
@@ -472,8 +476,12 @@ class Denoise:
         if align_motif and diffusion_mask.any() and pdb_coords.any() == None:
             px0 = self.align_to_xt_motif(px0, xt, diffusion_mask)
         elif align_motif and diffusion_mask.any():
-            px0[:,:4,:] = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask)
-            xt = self.align_to_xt_motif(xt, px0.detach(), diffusion_mask).detach()
+
+            if training:
+                px0[:,:4,:] = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask, len(original_roi_indices))
+            else:
+                _ = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask, len(original_roi_indices)) # One still wants to read the RMSD
+            xt = self.align_to_xt_motif(xt, px0.detach(), diffusion_mask, len(original_roi_indices)).detach()
  
         px0 = px0.to(xt.device)
         # Now done with diffusion mask. if fix motif is False, just set diffusion mask to be all True, and all coordinates can diffuse
