@@ -69,13 +69,57 @@ class RoseTTAFoldModule(nn.Module):
                 t1d=None, t2d=None, xyz_t=None, alpha_t=None,
                 msa_prev=None, pair_prev=None, state_prev=None,
                 return_raw=False, return_full=False, return_infer=False,
-                use_checkpoint=False, motif_mask=None, i_cycle=None, n_cycle=None):
+                use_checkpoint=False, motif_mask=None, i_cycle=None, n_cycle=None, k=None):
 
         B, N, L = msa_latent.shape[:3]
+        drop_rate = k
+        #p = int((1-drop_rate) * len((~motif_mask).nonzero())) # column masking
+        #perm = torch.randperm(len((~motif_mask).nonzero())) # column masking
+        #r_cols = torch.take((~motif_mask).nonzero().squeeze().to('cpu'), perm[:p]) # column masking
+        r_rows_latent = torch.randperm(msa_latent.shape[-1])[:int((1-drop_rate) * msa_latent.shape[-1])] # row masking
+        r_rows_full = torch.randperm(msa_full.shape[-1])[:int((1-drop_rate) * msa_full.shape[-1])] # row masking
+
+        msa_latent_mask = torch.zeros_like(msa_latent, dtype=bool).requires_grad_(False)
+        msa_latent_mask[:, :, motif_mask, :] = 1
+        #msa_latent_mask[:, :,  sorted(r_cols), :] = 1 # column masking
+        msa_latent_mask[:, :,  (~motif_mask).nonzero(), r_rows_latent] = 1 # row masking
+        msa_full_mask = torch.zeros_like(msa_full, dtype=bool).requires_grad_(False)
+        msa_full_mask[:, :, motif_mask, :] = 1
+        #msa_full_mask[:, :, sorted(r_cols), :] = 1 # column masking
+        msa_full_mask[:, :, (~motif_mask).nonzero(), r_rows_full] = 1 # row masking
+        #msa_latent[:, :, ~motif_mask, :] += 6 * torch.randn_like(msa_latent[:, :, ~motif_mask, :]).requires_grad_(False) 
+        #msa_full[:, :, ~motif_mask, :] += 6 * torch.randn_like(msa_full[:, :, ~motif_mask, :]).requires_grad_(False) 
+
+
         # Get embeddings
-        msa_latent, pair, state = self.latent_emb(msa_latent, seq, idx)
-        msa_full = self.full_emb(msa_full, seq, idx)
+        msa_latent, pair, state = self.latent_emb(msa_latent * msa_latent_mask, seq, idx)
+        msa_full = self.full_emb(msa_full * msa_full_mask, seq, idx)
         roi_indices = motif_mask.nonzero()
+
+        # MSA embedding masks
+        # For reproducibility: 
+        # - set deterministic mode
+        # - comment column masking lines if row masking (and viceversa)
+        # - comment column masking if running full mask (drop_rate=1) or no mask (drop_rate=0) cases
+
+        #drop_rate = k
+        #p = int((1-drop_rate) * len((~motif_mask).nonzero())) # column masking
+        #perm = torch.randperm(len((~motif_mask).nonzero())) # column masking
+        #r_cols = torch.take((~motif_mask).nonzero().squeeze().to('cpu'), perm[:p]) # column masking
+        r_rows_latent = torch.randperm(msa_latent.shape[-1])[:int((1-drop_rate) * msa_latent.shape[-1])] # row masking
+        r_rows_full = torch.randperm(msa_full.shape[-1])[:int((1-drop_rate) * msa_full.shape[-1])] # row masking
+
+        msa_latent_mask = torch.zeros_like(msa_latent, dtype=bool).requires_grad_(False)
+        msa_latent_mask[:, :, motif_mask, :] = 1
+        #msa_latent_mask[:, :,  sorted(r_cols), :] = 1 # column masking
+        msa_latent_mask[:, :,  (~motif_mask).nonzero(), r_rows_latent] = 1 # row masking
+        msa_full_mask = torch.zeros_like(msa_full, dtype=bool).requires_grad_(False)
+        msa_full_mask[:, :, motif_mask, :] = 1
+        #msa_full_mask[:, :, sorted(r_cols), :] = 1 # column masking
+        msa_full_mask[:, :, (~motif_mask).nonzero(), r_rows_full] = 1 # row masking
+        #msa_latent[:, :, ~motif_mask, :] += 6 * torch.randn_like(msa_latent[:, :, ~motif_mask, :]).requires_grad_(False) 
+        #msa_full[:, :, ~motif_mask, :] += 6 * torch.randn_like(msa_full[:, :, ~motif_mask, :]).requires_grad_(False) 
+
 
         # Do recycling
         if msa_prev == None:
@@ -85,16 +129,33 @@ class RoseTTAFoldModule(nn.Module):
         msa_mask = torch.zeros_like(msa_latent[:,0], dtype=bool).requires_grad_(False)
         pair_mask = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
         state_mask = torch.zeros_like(state, dtype=bool).requires_grad_(False)
+        t1d_mask = torch.zeros_like(t1d, dtype=bool).requires_grad_(False)
+        t2d_mask = torch.zeros_like(t2d, dtype=bool).requires_grad_(False)
+        alpha_t_mask = torch.zeros_like(alpha_t, dtype=bool).requires_grad_(False)
+        xyz_t_mask = torch.zeros_like(xyz_t, dtype=bool).requires_grad_(False)
+        xyz_mask = torch.zeros_like(xyz, dtype=bool).requires_grad_(False)
+        t2d[:, :,  motif_mask,  motif_mask, -1] = 1
+        t1d[:, :, motif_mask, 20] = 1
         msa_mask[:, motif_mask, :] = 1
         pair_mask[:, motif_mask, motif_mask, :] = 1
+        #pair_mask[:, roi_indices.reshape(-1,1), roi_indices.reshape(1,-1), :] = 1
         state_mask[:, motif_mask, :] = 1
+        t1d_mask[:, :, motif_mask, :-2] = 1
+        t1d_mask[:, :, motif_mask, -1] = 1
+        t1d_mask[:, :, motif_mask, -2] = 0
+        alpha_t_mask[:, :, motif_mask, :] = 1
+        xyz_t_mask[:, :, motif_mask, :, :] = 1
+        xyz_mask[:, motif_mask, :, :] = 1
 
-        msa_recycle, pair_recycle, state_recycle = self.recycle(seq, msa_prev * msa_mask, pair_prev * pair_mask, xyz, state_prev * state_mask)
+        msa_recycle, pair_recycle, state_recycle = self.recycle(seq, msa_prev * msa_mask, pair_prev * pair_mask, xyz * xyz_mask, state_prev * state_mask)
         pair_mask = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
         pair_mask[:, roi_indices.reshape(-1,1), roi_indices.reshape(1,-1), :] = 1
+        t2d_mask[:, :, roi_indices.reshape(-1,1), roi_indices.reshape(1,-1), :-1] = 1
+        t2d_mask[:, :, roi_indices.reshape(-1,1), roi_indices.reshape(1,-1), -1] = 0
 
         msa_latent[:,0] = msa_latent[:,0] + msa_recycle.reshape(B,L,-1)
         pair = pair + pair_recycle
+        #pair = (pair + torch.transpose(pair, 1, 2)) / 2
         state = state + state_recycle
         msa_recycle = msa_recycle.detach()
         pair_recycle = pair_recycle.detach()
@@ -109,19 +170,51 @@ class RoseTTAFoldModule(nn.Module):
             time_emb = self.timestep_embedder(L,t,motif_mask)
             n_tmpl = t1d.shape[1]
             t1d = torch.cat([t1d, time_emb[None,None,...].repeat(1,n_tmpl,1,1)], dim=-1)
-
+        '''
+        pair_noise = torch.randn_like(pair).requires_grad_(False)
+        pair_noise_mask = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
+        pair_noise_mask[:, roi_indices.reshape(-1,1), ~roi_indices.reshape(1,-1), :] = 1
+        pair_noise_mask[:, ~roi_indices.reshape(-1,1), roi_indices.reshape(1,-1), :] = 1
+        pair_noise[:, roi_indices.reshape(-1,1), roi_indices.reshape(1,-1), :] = 2 * torch.randn(len(roi_indices), len(roi_indices), 128).to(pair_noise.device)
+        state_noise = torch.randn_like(state).requires_grad_(False)
+        state_noise[:, motif_mask, :] = 10 * torch.randn(len(roi_indices), 64).to(state_noise.device)
+        state_noise_mask = torch.zeros_like(state, dtype=bool).requires_grad_(False)
+        state_noise_mask[:, ~roi_indices, :] = 1
+        #pair = pair + pair_noise * pair_noise_mask
+        #state = state + state_noise * state_noise_mask
+        '''
         # add template embedding
-        pair_, state_ = self.templ_emb(t1d, t2d, alpha_t, xyz_t, pair * (~pair_mask), state * (~state_mask), use_checkpoint=use_checkpoint)
+        pair_, state_ = self.templ_emb(t1d * (~t1d_mask), t2d * (~t2d_mask), alpha_t * (~alpha_t_mask), xyz_t * (~xyz_t_mask), pair * (~pair_mask), state * (~state_mask), use_checkpoint=use_checkpoint)
         #pair, state = self.templ_emb(t1d, t2d, alpha_t, xyz_t, pair, state, use_checkpoint=use_checkpoint)
         pair[~pair_mask] = pair_[~pair_mask]
         state[~state_mask] = state_[~state_mask]
 
         # Predict coordinates from given inputs
         #is_frozen_residue = motif_mask if self.freeze_track_motif else torch.zeros_like(motif_mask).bool()
+        '''
+        drop_rate = 0
+        #k = int((1-drop_rate) * len((~motif_mask).nonzero())) # column masking
+        #perm = torch.randperm(len((~motif_mask).nonzero())) # column masking
+        #r_cols = torch.take((~motif_mask).nonzero().squeeze().to('cpu'), perm[:k]) # column masking
+        r_rows_latent = torch.randperm(pair.shape[-1])[:int((1-drop_rate) * pair.shape[-1])] # row masking
+        r_rows_full = torch.randperm(state.shape[-1])[:int((1-drop_rate) * state.shape[-1])] # row masking
+
+        pair_mask = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
+        pair_mask[:, motif_mask, motif_mask, :] = 1
+        #msa_latent_mask[:, :,  r_cols, :] = 1 # column masking
+        pair_mask[:, :, :, r_rows_latent] = 1 # row masking
+        state_mask = torch.zeros_like(state, dtype=bool).requires_grad_(False)
+        state_mask[:, motif_mask, :] = 1
+        #msa_full_mask[:, :, r_cols, :] = 1 # column masking
+        state_mask[:, (~motif_mask).nonzero(), r_rows_full] = 1 # row masking
+        #msa_latent[:, :, ~motif_mask, :] += 6 * torch.randn_like(msa_latent[:, :, ~motif_mask, :]).requires_grad_(False) 
+        #msa_full[:, :, ~motif_mask, :] += 6 * torch.randn_like(msa_full[:, :, ~motif_mask, :]).requires_grad_(False) 
+        '''
         is_frozen_residue = torch.zeros_like(motif_mask).bool()
-        msa_, pair_, R, T, alpha_s, state_ = self.simulator(seq, msa_latent, msa_full, pair, xyz[:,:,:3],
+        msa_, pair_, R, T, alpha_s, state_ = self.simulator(seq, msa_latent * msa_latent_mask, msa_full * msa_full_mask, pair, xyz[:,:,:3],
                                                          state, idx, use_checkpoint=use_checkpoint,
                                                          motif_mask=is_frozen_residue)
+        
         msa_latent = msa_latent.detach()
         msa_full = msa_full.detach()
         msa_ = msa_.detach()
