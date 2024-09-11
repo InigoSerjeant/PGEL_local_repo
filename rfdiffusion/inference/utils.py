@@ -435,6 +435,7 @@ class Denoise:
         include_motif_sidechains=True,
         original_roi_indices=None,
         training=True,
+        inverse_ms=False,
     ):
         """
         Wrapper function to take px0, xt and t, and to produce xt-1
@@ -488,6 +489,8 @@ class Denoise:
         if not fix_motif:
             diffusion_mask_ = torch.zeros_like(diffusion_mask)
             diffusion_mask_[:] = False
+            if inverse_ms:
+                diffusion_mask_[~diffusion_mask] = True
 
         # get the next set of CA coordinates
         noise_scale_ca = self.noise_schedule_ca(t)

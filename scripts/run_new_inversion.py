@@ -37,7 +37,7 @@ def make_deterministic(seed=0):
 @hydra.main(version_base=None, config_path="../config/inference", config_name="base")
 def main(conf: HydraConfig) -> None:
     log = logging.getLogger(__name__)
-    conf.inference.deterministic = True
+    conf.inference.deterministic = False
     if conf.inference.deterministic:
         make_deterministic()
 
@@ -67,30 +67,30 @@ def main(conf: HydraConfig) -> None:
             m = m.groups()[0]
             indices.append(int(m))
         design_startnum = max(indices) + 1
-
+    inverse_ms = True
     loss_fn = torch.nn.MSELoss()
-    x_init, seq_init = sampler.sample_init()
+    x_init, seq_init = sampler.sample_init(inverse_ms=inverse_ms)
     original_roi_indices = sampler.mappings['con_ref_idx0'] 
     # original_roi_indices = sampler.mappings['complex_con_ref_idx0'] 
     len_roi_indices = len(original_roi_indices)
 
     # Initialise the msa, pair, and state embeddings
     if sampler.inf_conf.inversion_train:
-        #msa_prev = torch.zeros((1, len_roi_indices, 256), device=sampler.device, requires_grad=True)
-        #pair_prev = torch.zeros((1, len_roi_indices, len_roi_indices, 128), device=sampler.device, requires_grad=True)
-        #state_prev = torch.zeros((1, len_roi_indices, 64), device=sampler.device, requires_grad=True)
+        msa_prev = torch.zeros((1, len_roi_indices, 256), device=sampler.device, requires_grad=True)
+        pair_prev = torch.zeros((1, len_roi_indices, len_roi_indices, 128), device=sampler.device, requires_grad=True)
+        state_prev = torch.zeros((1, len_roi_indices, 64), device=sampler.device, requires_grad=True)
         #msa_prev[:,[0,1,2,3,4,5,6,7],:] = torch.load(f'learnt_embeddings/msa_{sampler.inf_conf.input_pdb[11:-4]}_12.pt')
         #state_prev[:,[0,1,2,3,4,5,6,7],:] = torch.load(f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[11:-4]}_12.pt')
         #pair_prev[:,np.array([0,1,2,3,4,5,6,7]).reshape(-1,1),np.array([0,1,2,3,4,5,6,7]).reshape(1,-1),:] = torch.load(f'learnt_embeddings/pair_{sampler.inf_conf.input_pdb[11:-4]}_12.pt')
         #msa_prev[:,[8,9,10],:] = torch.load(f'learnt_embeddings/msa_{sampler.inf_conf.input_pdb[11:-4]}_3.pt')
         #state_prev[:,[8,9,10],:] = torch.load(f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[11:-4]}_3.pt')
         #pair_prev[:,np.array([8,9,10]).reshape(-1,1),np.array([8,9,10]).reshape(1,-1),:] = torch.load(f'learnt_embeddings/pair_{sampler.inf_conf.input_pdb[11:-4]}_3.pt')
-        msa_prev = torch.load(f'learnt_embeddings/msa_{sampler.inf_conf.input_pdb[11:-4]}.pt')#[:,0:24,:].to(sampler.device)
-        pair_prev = torch.load(f'learnt_embeddings/pair_{sampler.inf_conf.input_pdb[11:-4]}.pt')#[:,0:24,0:24,:].to(sampler.device)
-        state_prev = torch.load(f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[11:-4]}.pt')#[:,0:2,:].to(sampler.device)
-        msa_prev.requires_grad_(True)
-        pair_prev.requires_grad_(True)
-        state_prev.requires_grad_(True)
+        #msa_prev = torch.load(f'learnt_embeddings/msa_{sampler.inf_conf.input_pdb[11:-4]}.pt')#[:,0:24,:].to(sampler.device)
+        #pair_prev = torch.load(f'learnt_embeddings/pair_{sampler.inf_conf.input_pdb[11:-4]}.pt')#[:,0:24,0:24,:].to(sampler.device)
+        #state_prev = torch.load(f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[11:-4]}.pt')#[:,0:2,:].to(sampler.device)
+        #msa_prev.requires_grad_(True)
+        #pair_prev.requires_grad_(True)
+        #state_prev.requires_grad_(True)
     else:
         msa_prev = torch.load(f'learnt_embeddings/msa_{sampler.inf_conf.input_pdb[11:-4]}.pt')
         state_prev = torch.load(f'learnt_embeddings/state_{sampler.inf_conf.input_pdb[11:-4]}.pt')
@@ -114,7 +114,7 @@ def main(conf: HydraConfig) -> None:
         random_rate = 0#torch.rand(1).requires_grad_(False)
         start_time = time.time()
         #out_prefix = f"{sampler.inf_conf.input_pdb[11:-4]}_{sampler.inf_conf.output_prefix}_{i_des}"
-        out_prefix = f"{sampler.inf_conf.input_pdb[11:-4]}_{random_rate}_column_{sampler.inf_conf.output_prefix}_{i_des}"
+        out_prefix = f"{sampler.inf_conf.input_pdb[11:-4]}_{random_rate}_{sampler.inf_conf.output_prefix}_{i_des}"
         log.info(f"Making design {out_prefix}")
         if sampler.inf_conf.cautious and os.path.exists(out_prefix + ".pdb"):
             log.info(
@@ -123,7 +123,7 @@ def main(conf: HydraConfig) -> None:
             continue
 
         if i_des != design_startnum:
-            x_init, seq_init = sampler.sample_init()
+            x_init, seq_init = sampler.sample_init(inverse_ms=inverse_ms)
             prev_roi_indices = torch.clone(roi_indices)
         else:
             prev_roi_indices = torch.arange(len_roi_indices)
@@ -163,18 +163,18 @@ def main(conf: HydraConfig) -> None:
             msa_prev.requires_grad_(True)
             pair_prev.requires_grad_(True)
             state_prev.requires_grad_(True)
-            optimiser = torch.optim.SGD([msa_prev, pair_prev, state_prev], lr=8e-4, momentum=0.9)
+            optimiser = torch.optim.SGD([msa_prev, pair_prev, state_prev], lr=4e-4, momentum=0.9)
             #optimiser = AdaBelief([msa_prev, pair_prev, state_prev], lr=5e-3, eps=1e-16, betas=(0.9,0.999), weight_decouple=False, rectify=True)
 
-            
+
         for param in sampler.model.parameters():
             param.requires_grad = False
         print(f'Rate is: {random_rate}')
         # Loop over number of reverse diffusion time steps.
         for t in range(int(sampler.t_step_input), sampler.inf_conf.final_step - 1, -1):
             final_step = sampler.inf_conf.final_step
-            msa_masked, msa_full, seq_in, xt_in, idx_pdb, t1d, t2d, xyz_t, alpha_t = sampler._preprocess(seq_t, x_t, t)
-            if t == int(sampler.t_step_input) and i_des == 0:
+            msa_masked, msa_full, seq_in, xt_in, idx_pdb, t1d, t2d, xyz_t, alpha_t = sampler._preprocess(seq_t, x_t, t, inverse_ms=inverse_ms)
+            if t == int(sampler.t_step_input) and i_des == design_startnum:
                 pdb_coords = sampler.target_feats['xyz_27'] - torch.nanmean(sampler.target_feats['xyz_27'][original_roi_indices,:4,:], dim=(0,1)).view(1,1,3)
             if conf.inference.model_runner == 'default':
                 N,L = msa_masked.shape[:2]
@@ -219,7 +219,7 @@ def main(conf: HydraConfig) -> None:
             ####################
 
 
-            
+
             _, _, px0, _, alpha, logits, plddt = sampler.model(msa_masked,
                                 msa_full,
                                 seq_in,
@@ -235,7 +235,8 @@ def main(conf: HydraConfig) -> None:
                                 t=torch.tensor(t),
                                 return_infer=True,
                                 motif_mask=sampler.diffusion_mask.squeeze().to(sampler.device),
-                                k=random_rate)
+                                k=random_rate,
+                                inverse_ms=inverse_ms)
 
             alpha = alpha.detach()
             logits = logits.detach()
@@ -267,6 +268,7 @@ def main(conf: HydraConfig) -> None:
                         fix_motif=False,
                         original_roi_indices=original_roi_indices,
                         training=sampler.inf_conf.inversion_train,
+                        inverse_ms=inverse_ms,
                     )
                     x_t_1 = x_t_1.detach()
                     sampler._log.info(

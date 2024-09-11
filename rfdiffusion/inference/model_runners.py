@@ -250,7 +250,7 @@ class Sampler:
         })
         return iu.Denoise(**denoise_kwargs)
 
-    def sample_init(self, return_forward_trajectory=False):
+    def sample_init(self, return_forward_trajectory=False, inverse_ms=False):
         """
         Initial features to start the sampling process.
         
@@ -329,14 +329,19 @@ class Sampler:
             # Fully diffusing from points initialised at the origin
             # adjust size of input xt according to residue map
             xyz_mapped = torch.full((1,1,L_mapped,27,3), np.nan)
-            #xyz_mapped[:, :, contig_map.hal_idx0, ...] = xyz_27[contig_map.ref_idx0,...]
-            #xyz_motif_prealign = xyz_mapped.clone()
-            #motif_prealign_com = xyz_motif_prealign[0,0,:,1].mean(dim=0)
-            #self.motif_com = xyz_27[contig_map.ref_idx0,1].mean(dim=0)
-            xyz_mapped = get_init_xyz(xyz_mapped).squeeze()
-            # adjust the size of the input atom map
-            atom_mask_mapped = torch.full((L_mapped, 27), False)
-            #atom_mask_mapped[contig_map.hal_idx0] = mask_27[contig_map.ref_idx0]
+            if inverse_ms:
+                xyz_mapped[:, :, ~self.mask_seq.squeeze(), ...] = xyz_27[~self.mask_seq.squeeze(),...]
+                print(xyz_mapped[3:])
+                #xyz_motif_prealign = xyz_mapped.clone()
+                #motif_prealign_com = xyz_motif_prealign[0,0,:,1].mean(dim=0)
+                #self.motif_com = xyz_27[~self.mask_seq.squeeze(),1].mean(dim=0)
+                xyz_mapped = get_init_xyz(xyz_mapped).squeeze()
+                # adjust the size of the input atom map
+                atom_mask_mapped = torch.full((L_mapped, 27), False)
+                atom_mask_mapped[~self.mask_seq.squeeze()] = mask_27[~self.mask_seq.squeeze()]
+            else:
+                xyz_mapped = get_init_xyz(xyz_mapped).squeeze()
+                atom_mask_mapped = torch.full((L_mapped, 27), False)
 
         # Diffuse the contig-mapped coordinates 
         if self.diffuser_conf.partial_T:
@@ -354,10 +359,12 @@ class Sampler:
         seq_t[contig_map.hal_idx0] = seq_orig[contig_map.ref_idx0]
         
         # Unmask sequence if desired
-        if self._conf.contigmap.provide_seq is not None:
-            seq_t[self.mask_seq.squeeze()] = seq_orig[self.mask_seq.squeeze()] 
+        seq_t[self.mask_seq.squeeze()] = seq_orig[self.mask_seq.squeeze()] 
+        if self._conf.contigmap.provide_seq is not None and not inverse_ms:
+            seq_t[~self.mask_seq.squeeze()] = 21
+        elif inverse_ms:
+            seq_t[~self.mask_seq.squeeze()] = seq_orig[~self.mask_seq.squeeze()] 
 
-        seq_t[~self.mask_seq.squeeze()] = 21
         seq_t    = torch.nn.functional.one_hot(seq_t, num_classes=22).float() # [L,22]
         seq_orig = torch.nn.functional.one_hot(seq_orig, num_classes=22).float() # [L,22]
 
@@ -365,12 +372,15 @@ class Sampler:
             xyz_mapped,
             torch.clone(seq_t),
             atom_mask_mapped.squeeze(),
-            #diffusion_mask=self.diffusion_mask.squeeze(),
+            diffusion_mask=~self.diffusion_mask.squeeze(),
             t_list=t_list)
         xT = fa_stack[-1].squeeze()[:,:14,:]
         xt = torch.clone(xT)
 
-        self.denoiser = self.construct_denoiser(len(self.contig_map.ref), visible=self.mask_seq.squeeze())
+        if inverse_ms:
+            self.denoiser = self.construct_denoiser(len(self.contig_map.ref), visible=np.ones(len(self.mask_seq.squeeze())))
+        else:
+            self.denoiser = self.construct_denoiser(len(self.contig_map.ref), visible=self.mask_seq.squeeze())
 
         ######################
         ### Apply Symmetry ###
@@ -406,7 +416,7 @@ class Sampler:
                     pot.diffuser = self.diffuser
         return xt, seq_t
 
-    def _preprocess(self, seq, xyz_t, t, repack=False):
+    def _preprocess(self, seq, xyz_t, t, repack=False, inverse_ms=False):
         
         """
         Function to prepare inputs to diffusion model
@@ -473,7 +483,10 @@ class Sampler:
         # Set timestep feature to 1 where diffusion mask is True, else 1-t/T
         timefeature = torch.zeros((L)).float()
         timefeature[self.mask_str.squeeze()] = 1 - t/self.T ### before just 1
-        timefeature[~self.mask_str.squeeze()] = 1 - t/self.T
+        if inverse_ms:
+            timefeature[~self.mask_str.squeeze()] = 1
+        else:
+            timefeature[~self.mask_str.squeeze()] = 1 - t/self.T
         timefeature = timefeature[None,None,...,None]
 
         t1d = torch.cat((t1d, timefeature), dim=-1).float()
@@ -483,7 +496,7 @@ class Sampler:
         #############
         if self.preprocess_conf.sidechain_input:
             xyz_t[torch.where(seq == 21, True, False),3:,:] = float('nan')
-        else:
+        elif not inverse_ms:
             xyz_t[~self.mask_str.squeeze(),3:,:] = float('nan')
 
         xyz_t=xyz_t[None, None]
@@ -559,7 +572,7 @@ class Sampler:
             plddt: (L, 1) Predicted lDDT of x0.
         '''
         msa_masked, msa_full, seq_in, xt_in, idx_pdb, t1d, t2d, xyz_t, alpha_t = self._preprocess(
-            seq_init, x_t, t)
+            seq_init, x_t, t, )
 
         N,L = msa_masked.shape[:2]
 
