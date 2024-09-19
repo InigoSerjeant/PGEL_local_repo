@@ -291,7 +291,10 @@ def main(conf: HydraConfig) -> None:
             plddt_stack.append(plddt[0].detach())  # remove singleton leading dimension
 
             # Optimising embeddings
-            loss = loss_fn(px0[roi_indices,:4,:].to(sampler.device), pdb_coords[original_roi_indices,:4,:].detach().to(sampler.device))
+            loss = loss_fn(px0[roi_indices,:4,:].to(sampler.device), pdb_coords[original_roi_indices,:4,:].detach().to(sampler.device)) 
+            if inverse_ms:
+                loss += 0.1 * loss_fn(torch.mean(px0[~sampler.mask_seq.nonzero()[:, 1],:1,:].to(sampler.device))-torch.mean(px0[roi_indices,:1,:].to(sampler.device)), torch.mean(pdb_coords[original_roi_indices,:1,:].detach().to(sampler.device))-torch.mean(pdb_coords[[el for el in range(len(sampler.mask_seq)) if el not in original_roi_indices],:1,:].detach().to(sampler.device)))
+
             loss_list.append(loss.item())
             if sampler.inf_conf.inversion_train:
                 optimiser.zero_grad()
@@ -347,14 +350,24 @@ def main(conf: HydraConfig) -> None:
         out = f"{out_prefix}.pdb"
 
         # Now don't output sidechains
-        writepdb(
-            out,
-            denoised_xyz_stack[0, :, :4],
-            final_seq,
-            sampler.binderlen,
-            chain_idx=sampler.chain_idx,
-            bfacts=bfacts,
-        )
+        if not inverse_ms:
+            writepdb(
+                out,
+                denoised_xyz_stack[0, :, :4],
+                final_seq,
+                sampler.binderlen,
+                chain_idx=sampler.chain_idx,
+                bfacts=bfacts,
+            )
+        else:
+            writepdb(
+                out,
+                denoised_xyz_stack[0, :, :14],
+                final_seq,
+                sampler.binderlen,
+                chain_idx=sampler.chain_idx,
+                bfacts=bfacts,
+            )
 
         # run metadata
         trb = dict(
