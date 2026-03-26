@@ -69,60 +69,75 @@ class RoseTTAFoldModule(nn.Module):
                 t1d=None, t2d=None, xyz_t=None, alpha_t=None,
                 msa_prev=None, pair_prev=None, state_prev=None,
                 return_raw=False, return_full=False, return_infer=False,
-                use_checkpoint=False, motif_mask=None, i_cycle=None, n_cycle=None, k=None, inverse_ms=False):
+                use_checkpoint=False, motif_mask=None, i_cycle=None, n_cycle=None, k=None, inverse_ms=False, seed=0, row_masking=True):
 
         B, N, L = msa_latent.shape[:3]
         drop_rate = k
-        #p = int((1-drop_rate) * len((~motif_mask).nonzero())) # column masking
-        #perm = torch.randperm(len((~motif_mask).nonzero())) # column masking
-        #r_cols = torch.take((~motif_mask).nonzero().squeeze().to('cpu'), perm[:p]) # column masking
-        r_rows_latent = torch.randperm(msa_latent.shape[-1])[:int((1-drop_rate) * msa_latent.shape[-1])] # row masking
-        r_rows_full = torch.randperm(msa_full.shape[-1])[:int((1-drop_rate) * msa_full.shape[-1])] # row masking
+        if k != 0 or not row_masking:
+            g = torch.Generator(device='cpu').manual_seed(seed)
+        if not row_masking:
+            p = int((1-drop_rate) * len((~motif_mask).nonzero())) # column masking
+            perm = torch.randperm(len((~motif_mask).nonzero()), generator=g) # column masking
+            r_cols = torch.take((~motif_mask).nonzero().squeeze().to('cpu'), perm[:p]) # column masking
+            print(r_cols)
+        elif k != 0 or not row_masking:
+            r_rows_latent = torch.randperm(msa_latent.shape[-1], generator=g)[:int((1-drop_rate) * msa_latent.shape[-1])] # row masking
+            r_rows_full = torch.randperm(msa_full.shape[-1], generator=g)[:int((1-drop_rate) * msa_full.shape[-1])] # row masking
 
-        msa_latent_mask = torch.zeros_like(msa_latent, dtype=bool).requires_grad_(False)
-        msa_latent_mask[:, :, motif_mask, :] = 1
-        #msa_latent_mask[:, :,  sorted(r_cols), :] = 1 # column masking
-        msa_latent_mask[:, :,  (~motif_mask).nonzero(), r_rows_latent] = 1 # row masking
-        msa_full_mask = torch.zeros_like(msa_full, dtype=bool).requires_grad_(False)
-        msa_full_mask[:, :, motif_mask, :] = 1
-        #msa_full_mask[:, :, sorted(r_cols), :] = 1 # column masking
-        msa_full_mask[:, :, (~motif_mask).nonzero(), r_rows_full] = 1 # row masking
+        if k != 0 or not row_masking:
+            msa_latent_mask = torch.zeros_like(msa_latent, dtype=bool).requires_grad_(False)
+            msa_latent_mask[:, :, motif_mask, :] = 1 #modify for zero/random embeddings  
+        if not row_masking and k != 0:
+            msa_latent_mask[:, :,  sorted(r_cols), :] = 1 # column masking
+        elif k != 0:
+            msa_latent_mask[:, :,  (~motif_mask).nonzero(), r_rows_latent] = 1 # row masking
+        if k != 0 or not row_masking:
+            msa_full_mask = torch.zeros_like(msa_full, dtype=bool).requires_grad_(False)
+            msa_full_mask[:, :, motif_mask, :] = 1 #modify for zero/random embeddings 
+        if not row_masking:
+            msa_full_mask[:, :, sorted(r_cols), :] = 1 # column masking
+        elif k != 0:
+            msa_full_mask[:, :, (~motif_mask).nonzero(), r_rows_full] = 1 # row masking
         #msa_latent[:, :, ~motif_mask, :] += 8 * torch.randn_like(msa_latent[:, :, ~motif_mask, :]).requires_grad_(False) 
         #msa_full[:, :, ~motif_mask, :] += 8 * torch.randn_like(msa_full[:, :, ~motif_mask, :]).requires_grad_(False) 
 
 
         # Get embeddings
-        msa_latent, pair, state = self.latent_emb(msa_latent * msa_latent_mask, seq, idx)
-        msa_full = self.full_emb(msa_full * msa_full_mask, seq, idx)
+        if k != 0:
+            msa_latent, pair, state = self.latent_emb(msa_latent * msa_latent_mask, seq, idx)
+            msa_full = self.full_emb(msa_full * msa_full_mask, seq, idx)
+
+        else:
+            msa_latent, pair, state = self.latent_emb(msa_latent, seq, idx)
+            msa_full = self.full_emb(msa_full, seq, idx)
         roi_indices = motif_mask.nonzero()
 
-        # MSA embedding masks
-        # For reproducibility: 
-        # - set deterministic mode
-        # - comment column masking lines if row masking (and viceversa)
-        # - comment column masking if running full mask (drop_rate=1) or no mask (drop_rate=0) cases
-        # - if running column masking do not include the following four lines (unless it's 'mixing' mode)
+        ############# DIM CONSERVATION STARTS HERE ################
+        if not row_masking:
+            p = int((1-drop_rate) * len((~motif_mask).nonzero())) # column masking
+            perm = torch.randperm(len((~motif_mask).nonzero()), generator=g) # column masking
+            r_cols = torch.take((~motif_mask).nonzero().squeeze().to('cpu'), perm[:p]) # column masking
+            print(r_cols)
+        elif k != 0:
+            r_rows_latent = torch.randperm(msa_latent.shape[-1], generator=g)[:int((1-drop_rate) * msa_latent.shape[-1])] # row masking
+            r_rows_full = torch.randperm(msa_full.shape[-1], generator=g)[:int((1-drop_rate) * msa_full.shape[-1])] # row masking
 
-        drop_rate = k
-        #p = int((1-drop_rate) * len((~motif_mask).nonzero())) # column masking
-        #perm = torch.randperm(len((~motif_mask).nonzero())) # column masking
-        #r_cols = torch.take((~motif_mask).nonzero().squeeze().to('cpu'), perm[:p]) # column masking
-        r_rows_latent = torch.randperm(msa_latent.shape[-1])[:int((1-drop_rate) * msa_latent.shape[-1])] # row masking
-        r_rows_full = torch.randperm(msa_full.shape[-1])[:int((1-drop_rate) * msa_full.shape[-1])] # row masking
+        if k != 0:
+            msa_latent_mask = torch.zeros_like(msa_latent, dtype=bool).requires_grad_(False)
+            msa_latent_mask[:, :, motif_mask, :] = 1 #modify for zero/random embeddings  
+        if not row_masking and k != 0:
+            msa_latent_mask[:, :,  sorted(r_cols), :] = 1 # column masking
+        elif k != 0:
+            msa_latent_mask[:, :,  (~motif_mask).nonzero(), r_rows_latent] = 1 # row masking
+        if k != 0:
+            msa_full_mask = torch.zeros_like(msa_full, dtype=bool).requires_grad_(False)
+            msa_full_mask[:, :, motif_mask, :] = 1 #modify for zero/random embeddings 
+        if not row_masking:
+            msa_full_mask[:, :, sorted(r_cols), :] = 1 # column masking
+        elif k != 0:
+            msa_full_mask[:, :, (~motif_mask).nonzero(), r_rows_full] = 1 # row masking
+        ############# DIM CONSERVATION ENDS HERE ################
 
-        msa_latent_mask = torch.zeros_like(msa_latent, dtype=bool).requires_grad_(False)
-        msa_latent_mask[:, :, motif_mask, :] = 1
-        #msa_latent_mask[:, :,  sorted(r_cols), :] = 1 # column masking
-        msa_latent_mask[:, :,  (~motif_mask).nonzero(), r_rows_latent] = 1 # row masking
-        msa_full_mask = torch.zeros_like(msa_full, dtype=bool).requires_grad_(False)
-        msa_full_mask[:, :, motif_mask, :] = 1
-        #msa_full_mask[:, :, sorted(r_cols), :] = 1 # column masking
-        msa_full_mask[:, :, (~motif_mask).nonzero(), r_rows_full] = 1 # row masking
-        #msa_latent[:, :, ~motif_mask, :] += 8 * torch.randn_like(msa_latent[:, :, ~motif_mask, :]).requires_grad_(False) 
-        #msa_full[:, :, ~motif_mask, :] += 8 * torch.randn_like(msa_full[:, :, ~motif_mask, :]).requires_grad_(False) 
-
-
-        # Do recycling
         if msa_prev == None:
             msa_prev = torch.zeros_like(msa_latent[:,0])
             pair_prev = torch.zeros_like(pair)
@@ -148,9 +163,6 @@ class RoseTTAFoldModule(nn.Module):
         xyz_t_mask[:, :, motif_mask, :, :] = 1
         xyz_mask[:, motif_mask, :, :] = 1
 
-        #if inverse_ms:
-        #    msa_recycle, pair_recycle, state_recycle = self.recycle(seq, msa_prev, pair_prev, xyz, state_prev)
-        #else:
         msa_recycle, pair_recycle, state_recycle = self.recycle(seq, msa_prev * msa_mask, pair_prev * pair_mask, xyz * xyz_mask, state_prev * state_mask)
             
         pair_mask = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
@@ -195,7 +207,29 @@ class RoseTTAFoldModule(nn.Module):
         pair_, state_ = self.templ_emb(t1d * (~t1d_mask), t2d * (~t2d_mask), alpha_t * (~alpha_t_mask), xyz_t * (~xyz_t_mask), pair * (~pair_mask), state * (~state_mask), use_checkpoint=use_checkpoint)
         pair[~pair_mask] = pair_[~pair_mask]
         state[~state_mask] = state_[~state_mask]
+        if not row_masking:
+            pair_mask_g = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
+            pair_mask_g[:, motif_mask, :, :] = 1 #modify for zero/random embeddings 
+            pair_mask_g[:, :, motif_mask, :] = 1 #modify for zero/random embeddings 
+            pair_mask_g[:, :,  sorted(r_cols), :] = 1 # column masking
+            pair_mask_g[:, sorted(r_cols),  :, :] = 1 # column masking
+        elif k != 0:
+            pair_mask_g = torch.zeros_like(pair, dtype=bool).requires_grad_(False)
+            r_rows_pair = torch.randperm(pair.shape[-1], generator=g)[:int((1-drop_rate) * pair.shape[-1])] # row masking
+            pair_mask_g[:, motif_mask, :, :] = 1 #modify for zero/random embeddings 
+            pair_mask_g[:, :, motif_mask, :] = 1 #modify for zero/random embeddings 
+            pair_mask_g[:, :,  (~motif_mask).nonzero(), r_rows_pair] = 1 # row masking
+            pair_mask_g[:, (~motif_mask).nonzero(), :, r_rows_pair] = 1 # row masking
 
+        if not row_masking:
+            state_mask_g = torch.zeros_like(state, dtype=bool).requires_grad_(False)
+            state_mask_g[:, motif_mask, :] = 1 #modify for zero/random embeddings 
+            state_mask_g[:, sorted(r_cols), :] = 1 # column masking
+        elif k != 0:
+            state_mask_g = torch.zeros_like(state, dtype=bool).requires_grad_(False)
+            r_rows_state = torch.randperm(state.shape[-1], generator=g)[:int((1-drop_rate) * state.shape[-1])] # row masking
+            state_mask_g[:, motif_mask, :] = 1 #modify for zero/random embeddings 
+            state_mask_g[:, (~motif_mask).nonzero(), r_rows_state] = 1 # row masking
         # Predict coordinates from given inputs
         #is_frozen_residue = motif_mask if self.freeze_track_motif else torch.zeros_like(motif_mask).bool()
         '''
@@ -221,7 +255,12 @@ class RoseTTAFoldModule(nn.Module):
             is_frozen_residue = ~motif_mask
         else:
             is_frozen_residue = torch.zeros_like(motif_mask).bool()
-        msa_, pair_, R, T, alpha_s, state_ = self.simulator(seq, msa_latent * msa_latent_mask, msa_full * msa_full_mask, pair, xyz[:,:,:3],
+        if k != 0:
+            msa_, pair_, R, T, alpha_s, state_ = self.simulator(seq, msa_latent * msa_latent_mask, msa_full * msa_full_mask, pair, xyz[:,:,:3],
+                                                         state * state_mask_g, idx, use_checkpoint=use_checkpoint,
+                                                         motif_mask=is_frozen_residue)
+        else:
+            msa_, pair_, R, T, alpha_s, state_ = self.simulator(seq, msa_latent, msa_full, pair, xyz[:,:,:3],
                                                          state, idx, use_checkpoint=use_checkpoint,
                                                          motif_mask=is_frozen_residue)
         

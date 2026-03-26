@@ -359,11 +359,13 @@ class Sampler:
         seq_t[contig_map.hal_idx0] = seq_orig[contig_map.ref_idx0]
         
         # Unmask sequence if desired
-        seq_t[self.mask_seq.squeeze()] = seq_orig[self.mask_seq.squeeze()] 
-        if self._conf.contigmap.provide_seq is not None and not inverse_ms:
+        if not inverse_ms:
+            seq_t[self.mask_seq.squeeze()] = seq_orig[self.mask_seq.squeeze()]
+        if self._conf.contigmap.provide_seq is not None:
             seq_t[~self.mask_seq.squeeze()] = 21
         elif inverse_ms:
-            seq_t[~self.mask_seq.squeeze()] = seq_orig[~self.mask_seq.squeeze()] 
+            seq_t[self.mask_seq.squeeze()] = 21
+            seq_t[~self.mask_seq.squeeze()] = seq_orig[~self.mask_seq.squeeze()]
 
         seq_t    = torch.nn.functional.one_hot(seq_t, num_classes=22).float() # [L,22]
         seq_orig = torch.nn.functional.one_hot(seq_orig, num_classes=22).float() # [L,22]
@@ -555,7 +557,7 @@ class Sampler:
 
         return msa_masked, msa_full, seq[None], torch.squeeze(xyz_t, dim=0), idx, t1d, t2d, xyz_t, alpha_t
         
-    def sample_step(self, *, t, x_t, seq_init, final_step):
+    def sample_step(self, *, t, x_t, seq_init, final_step, pdb_coords, k=0, seed=0):
         '''Generate the next pose that the model should be supplied at timestep t-1.
 
         Args:
@@ -598,7 +600,7 @@ class Sampler:
                                 state_prev = state_prev,
                                 t=torch.tensor(t),
                                 return_infer=True,
-                                motif_mask=self.diffusion_mask.squeeze().to(self.device))
+                                motif_mask=self.diffusion_mask.squeeze().to(self.device), k=k, seed=0)
 
         # prediction of X0 
         _, px0  = self.allatom(torch.argmax(seq_in, dim=-1), px0, alpha)
@@ -634,7 +636,7 @@ class SelfConditioning(Sampler):
     pX0[t+1] is provided as a template input to the model at time t
     """
 
-    def sample_step(self, *, t, x_t, seq_init, final_step):
+    def sample_step(self, *, t, x_t, seq_init, final_step, pdb_coords=None, original_roi_indices=None, k=0, inverse_ms=False, seed=0):
         '''
         Generate the next pose that the model should be supplied at timestep t-1.
         Args:
@@ -688,7 +690,7 @@ class SelfConditioning(Sampler):
                                 state_prev = None,
                                 t=torch.tensor(t),
                                 return_infer=True,
-                                motif_mask=self.diffusion_mask.squeeze().to(self.device))   
+                                motif_mask=self.diffusion_mask.squeeze().to(self.device), k=k, inverse_ms=inverse_ms, seed=seed)   
 
             if self.symmetry is not None and self.inf_conf.symmetric_self_cond:
                 px0 = self.symmetrise_prev_pred(px0=px0,seq_in=seq_in, alpha=alpha)[:,:,:3]
@@ -709,9 +711,12 @@ class SelfConditioning(Sampler):
                 xt=x_t,
                 px0=px0,
                 t=t,
+                pdb_coords=pdb_coords,
+                original_roi_indices=original_roi_indices,
+                fix_motif=False,
                 diffusion_mask=self.mask_str.squeeze(),
                 align_motif=self.inf_conf.align_motif,
-                include_motif_sidechains=self.preprocess_conf.motif_sidechain_input
+                include_motif_sidechains=self.preprocess_conf.motif_sidechain_input, inverse_ms=True,
             )
             self._log.info(
                     f'Timestep {t}, input to next step: { seq2chars(torch.argmax(seq_t_1, dim=-1).tolist())}')

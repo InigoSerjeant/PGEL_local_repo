@@ -476,14 +476,14 @@ class Denoise:
         ###############################
         if align_motif and diffusion_mask.any() and pdb_coords.any() == None:
             px0 = self.align_to_xt_motif(px0, xt, diffusion_mask)
-        elif align_motif and diffusion_mask.any():
+        elif align_motif and diffusion_mask.any(): # and not inverse_ms:
 
-            if training:
+            if training or inverse_ms:
                 px0[:,:4,:] = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask, len(original_roi_indices))
             else:
                 _ = self.align_to_xt_motif(px0[:,:4,:], pdb_coords[original_roi_indices,:4,:], diffusion_mask, len(original_roi_indices)) # One still wants to read the RMSD
             xt = self.align_to_xt_motif(xt, px0.detach(), diffusion_mask, len(original_roi_indices)).detach()
- 
+
         px0 = px0.to(xt.device)
         # Now done with diffusion mask. if fix motif is False, just set diffusion mask to be all True, and all coordinates can diffuse
         if not fix_motif:

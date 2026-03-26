@@ -6,7 +6,7 @@ To run with base.yaml as the config,
 
 > python run_inversion.py
 
-Adapted from run_inference.py (RFdiffusion) by Kevin Michalewicz (AstraZeneca)
+Adapted from run_inference.py (RFdiffusion) by Kevin Michalewicz (Imperial/UBA)
 
 """
 
