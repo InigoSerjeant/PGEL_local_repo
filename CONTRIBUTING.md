@@ -18,5 +18,5 @@ Please use [pull requests](https://github.com/AstraZeneca/PGEL/pulls) if you wan
 
 ## Reaching out to code developers
 
-The list of authors and their email addresses are available [here](https://github.com/AstraZeneca/PGEL/AUTHORS.md).
+The list of authors and their email addresses are available [here](https://github.com/AstraZeneca/PGEL/blob/main/AUTHORS.md).
 
