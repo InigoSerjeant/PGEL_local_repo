@@ -1,16 +1,17 @@
-# Credits
+# Authors
 
 ## PGEL
 
-Development Lead:
+Maintainers:
 
 - Kevin Michalewicz [[Website](https://kevinmichalewicz.com/)|[GitHub](https://github.com/kevinmicha)|[Email](mailto:kmichalewicz@fi.uba.ar?subject=[PGEL]%20Insert%20subject)]
+- Asher Mullokandov: asher.mullokandov@astrazeneca.com
 
-Supervision:
-
+Authors:
+- Kevin Michalewicz
 - Chen Jin
 - Philip Teare
 - Tom Diethe
 - Mauricio Barahona (PI at Imperial College London)
 - Barbara Bravi (PI at Imperial College London)
-- Asher Mullokandov (PI at AstraZeneca)
+- Asher Mullokandov ([*corresponding*](asher.mullokandov@gmail.com), PI at AstraZeneca)
