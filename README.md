@@ -18,7 +18,7 @@ We also formalize *motif diversification* as a design task: given a protein stru
 
 PGEL shifts the control mechanism from coordinate-space perturbation to embedding-space perturbation. Instead of changing backbone coordinates alone, PGEL learns a motif-specific representation and uses that representation as the control variable during generation. Diversity is further induced by masking embeddings, which relaxes evolutionary and structural constraints while preserving the learned motif signal.
 
-## Setup
+## Requirements and Setup
 
 PGEL is built around RFdiffusion and shares it's requirements. To install PGEL locally:
 
