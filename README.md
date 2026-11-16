@@ -66,6 +66,8 @@ These installer commands target Linux x86_64. For Linux ARM64, download the corr
 
 The Conda environment installs the pinned third-party dependencies. The repository's RFdiffusion and SE(3)-Transformer packages are installed from the local checkout in the next step, not from PyPI.
 
+The environment file also configures pip to use the official PyTorch CUDA 12.4 wheel index, which is required for the pinned `+cu124` PyTorch packages.
+
 ```bash
 git clone --branch inigo_5UDC_branch https://github.com/InigoSerjeant/PGEL_local_repo.git
 cd PGEL_local_repo
