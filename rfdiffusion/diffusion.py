@@ -546,7 +546,11 @@ class IGSO3:
         # R_t @ hat(Score_approx) is the score approximation in the Lie algebra
         # SO(3) (i.e. the output of Algorithm 1)
         Omega = torch.linalg.norm(R_0t_rotvec, axis=-1).numpy()
-        Score_approx = R_0t_rotvec * (self.score_norm(t, Omega) / Omega)[:, None]
+        # The score table starts at a positive angle. Extend its first segment
+        # linearly to zero, where score_norm(omega) / omega has a finite limit.
+        omega_min = self.igso3_vals["discrete_omega"][0]
+        score_scale = self.score_norm(t, Omega) / np.maximum(Omega, omega_min)
+        Score_approx = R_0t_rotvec * score_scale[:, None]
 
         # Compute scaling for score and sampled noise (following Eq 6 of [2])
         continuous_t = t / self.T

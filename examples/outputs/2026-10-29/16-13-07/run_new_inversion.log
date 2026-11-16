@@ -1,0 +1,307 @@
+[2026-10-29 16:13:07,709][__main__][INFO] - Found GPU with device_name NVIDIA GeForce RTX 4070 Ti. Will run RFdiffusion on NVIDIA GeForce RTX 4070 Ti
+[2026-10-29 16:13:07,709][rfdiffusion.inference.model_runners][INFO] - Reading checkpoint from /home/ics121/Documents/FirstYear/PGEL_pipeline/PGEL/PGEL/rfdiffusion/inference/../../models/Base_ckpt.pt
+[2026-10-29 16:13:09,276][rfdiffusion.inference.model_runners][INFO] - Loading checkpoint.
+[2026-10-29 16:13:09,340][rfdiffusion.diffusion][INFO] - Using cached IGSO3.
+[2026-10-29 16:13:09,349][rfdiffusion.inference.model_runners][INFO] - Using contig: ['17-17/A18-25/21-21/A47-54/37-37/A92-99/23-23/A123-130/28-28']
+[2026-10-29 16:13:09,360][rfdiffusion.inference.model_runners][INFO] - Sequence init: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:09,364][__main__][INFO] - Making design 1bcf_chainA_example_outputs/pgel_train_0 with random rate 0 and row masking
+[2026-10-29 16:13:09,368][rfdiffusion.inference.model_runners][INFO] - Using contig: ['17-17/A18-25/21-21/A47-54/37-37/A92-99/23-23/A123-130/28-28']
+[2026-10-29 16:13:09,379][rfdiffusion.inference.model_runners][INFO] - Sequence init: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:10,706][__main__][INFO] - pLDDT: 0.9032751321792603
+[2026-10-29 16:13:10,719][__main__][INFO] - pLDDT motif: 0.9058171510696411
+[2026-10-29 16:13:10,719][__main__][INFO] - pLDDT motif min: 0.8794296979904175
+[2026-10-29 16:13:11,007][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.41
+[2026-10-29 16:13:11,008][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 8.91
+[2026-10-29 16:13:11,010][rfdiffusion.inference.model_runners][INFO] - Timestep 50, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:12,556][__main__][INFO] - pLDDT: 0.976593017578125
+[2026-10-29 16:13:12,557][__main__][INFO] - pLDDT motif: 0.9566521048545837
+[2026-10-29 16:13:12,557][__main__][INFO] - pLDDT motif min: 0.9390339851379395
+[2026-10-29 16:13:12,560][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:12,561][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.54
+[2026-10-29 16:13:12,562][rfdiffusion.inference.model_runners][INFO] - Timestep 49, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:14,136][__main__][INFO] - pLDDT: 0.9768290519714355
+[2026-10-29 16:13:14,136][__main__][INFO] - pLDDT motif: 0.9571753144264221
+[2026-10-29 16:13:14,137][__main__][INFO] - pLDDT motif min: 0.9396606087684631
+[2026-10-29 16:13:14,141][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:14,141][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.09
+[2026-10-29 16:13:14,143][rfdiffusion.inference.model_runners][INFO] - Timestep 48, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:15,719][__main__][INFO] - pLDDT: 0.9769631028175354
+[2026-10-29 16:13:15,720][__main__][INFO] - pLDDT motif: 0.9572081565856934
+[2026-10-29 16:13:15,720][__main__][INFO] - pLDDT motif min: 0.9412618279457092
+[2026-10-29 16:13:15,724][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.31
+[2026-10-29 16:13:15,724][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.72
+[2026-10-29 16:13:15,725][rfdiffusion.inference.model_runners][INFO] - Timestep 47, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:17,243][__main__][INFO] - pLDDT: 0.9765825271606445
+[2026-10-29 16:13:17,244][__main__][INFO] - pLDDT motif: 0.9564489126205444
+[2026-10-29 16:13:17,244][__main__][INFO] - pLDDT motif min: 0.9382083415985107
+[2026-10-29 16:13:17,248][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:17,248][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.45
+[2026-10-29 16:13:17,250][rfdiffusion.inference.model_runners][INFO] - Timestep 46, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:18,836][__main__][INFO] - pLDDT: 0.9774189591407776
+[2026-10-29 16:13:18,837][__main__][INFO] - pLDDT motif: 0.9577730894088745
+[2026-10-29 16:13:18,837][__main__][INFO] - pLDDT motif min: 0.9403107166290283
+[2026-10-29 16:13:18,841][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:18,841][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.25
+[2026-10-29 16:13:18,843][rfdiffusion.inference.model_runners][INFO] - Timestep 45, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:20,370][__main__][INFO] - pLDDT: 0.9762982130050659
+[2026-10-29 16:13:20,371][__main__][INFO] - pLDDT motif: 0.9564051032066345
+[2026-10-29 16:13:20,371][__main__][INFO] - pLDDT motif min: 0.939744770526886
+[2026-10-29 16:13:20,375][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:20,375][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.16
+[2026-10-29 16:13:20,377][rfdiffusion.inference.model_runners][INFO] - Timestep 44, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:21,958][__main__][INFO] - pLDDT: 0.9761689901351929
+[2026-10-29 16:13:21,959][__main__][INFO] - pLDDT motif: 0.955729067325592
+[2026-10-29 16:13:21,959][__main__][INFO] - pLDDT motif min: 0.9373894929885864
+[2026-10-29 16:13:21,963][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:21,963][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.06
+[2026-10-29 16:13:21,965][rfdiffusion.inference.model_runners][INFO] - Timestep 43, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:23,558][__main__][INFO] - pLDDT: 0.976367175579071
+[2026-10-29 16:13:23,558][__main__][INFO] - pLDDT motif: 0.9565406441688538
+[2026-10-29 16:13:23,558][__main__][INFO] - pLDDT motif min: 0.938580334186554
+[2026-10-29 16:13:23,563][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.31
+[2026-10-29 16:13:23,563][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.27
+[2026-10-29 16:13:23,565][rfdiffusion.inference.model_runners][INFO] - Timestep 42, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:25,085][__main__][INFO] - pLDDT: 0.9769490361213684
+[2026-10-29 16:13:25,086][__main__][INFO] - pLDDT motif: 0.9569870233535767
+[2026-10-29 16:13:25,086][__main__][INFO] - pLDDT motif min: 0.9393746852874756
+[2026-10-29 16:13:25,089][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:25,090][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.24
+[2026-10-29 16:13:25,091][rfdiffusion.inference.model_runners][INFO] - Timestep 41, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:26,668][__main__][INFO] - pLDDT: 0.9773468971252441
+[2026-10-29 16:13:26,669][__main__][INFO] - pLDDT motif: 0.9578105211257935
+[2026-10-29 16:13:26,669][__main__][INFO] - pLDDT motif min: 0.9410295486450195
+[2026-10-29 16:13:26,673][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:26,673][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.38
+[2026-10-29 16:13:26,675][rfdiffusion.inference.model_runners][INFO] - Timestep 40, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:28,192][__main__][INFO] - pLDDT: 0.9773890972137451
+[2026-10-29 16:13:28,193][__main__][INFO] - pLDDT motif: 0.9576635360717773
+[2026-10-29 16:13:28,193][__main__][INFO] - pLDDT motif min: 0.9394440650939941
+[2026-10-29 16:13:28,197][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:28,197][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.53
+[2026-10-29 16:13:28,199][rfdiffusion.inference.model_runners][INFO] - Timestep 39, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:29,777][__main__][INFO] - pLDDT: 0.9773300886154175
+[2026-10-29 16:13:29,777][__main__][INFO] - pLDDT motif: 0.957970142364502
+[2026-10-29 16:13:29,778][__main__][INFO] - pLDDT motif min: 0.940527081489563
+[2026-10-29 16:13:29,781][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:29,782][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.47
+[2026-10-29 16:13:29,783][rfdiffusion.inference.model_runners][INFO] - Timestep 38, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:31,364][__main__][INFO] - pLDDT: 0.9773094058036804
+[2026-10-29 16:13:31,364][__main__][INFO] - pLDDT motif: 0.957630455493927
+[2026-10-29 16:13:31,364][__main__][INFO] - pLDDT motif min: 0.9379266500473022
+[2026-10-29 16:13:31,368][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:31,369][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.58
+[2026-10-29 16:13:31,370][rfdiffusion.inference.model_runners][INFO] - Timestep 37, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:32,887][__main__][INFO] - pLDDT: 0.9776131510734558
+[2026-10-29 16:13:32,888][__main__][INFO] - pLDDT motif: 0.9583562612533569
+[2026-10-29 16:13:32,888][__main__][INFO] - pLDDT motif min: 0.9399875998497009
+[2026-10-29 16:13:32,892][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:32,893][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.89
+[2026-10-29 16:13:32,894][rfdiffusion.inference.model_runners][INFO] - Timestep 36, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:34,471][__main__][INFO] - pLDDT: 0.9779368042945862
+[2026-10-29 16:13:34,472][__main__][INFO] - pLDDT motif: 0.9584717750549316
+[2026-10-29 16:13:34,472][__main__][INFO] - pLDDT motif min: 0.9404805898666382
+[2026-10-29 16:13:34,476][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:34,477][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.99
+[2026-10-29 16:13:34,478][rfdiffusion.inference.model_runners][INFO] - Timestep 35, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:36,001][__main__][INFO] - pLDDT: 0.9781723022460938
+[2026-10-29 16:13:36,002][__main__][INFO] - pLDDT motif: 0.9591244459152222
+[2026-10-29 16:13:36,002][__main__][INFO] - pLDDT motif min: 0.9412164688110352
+[2026-10-29 16:13:36,006][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:36,006][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.92
+[2026-10-29 16:13:36,008][rfdiffusion.inference.model_runners][INFO] - Timestep 34, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:37,584][__main__][INFO] - pLDDT: 0.9771072268486023
+[2026-10-29 16:13:37,585][__main__][INFO] - pLDDT motif: 0.957740306854248
+[2026-10-29 16:13:37,585][__main__][INFO] - pLDDT motif min: 0.9401823282241821
+[2026-10-29 16:13:37,589][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:37,589][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.61
+[2026-10-29 16:13:37,591][rfdiffusion.inference.model_runners][INFO] - Timestep 33, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:39,175][__main__][INFO] - pLDDT: 0.977114737033844
+[2026-10-29 16:13:39,175][__main__][INFO] - pLDDT motif: 0.9572267532348633
+[2026-10-29 16:13:39,175][__main__][INFO] - pLDDT motif min: 0.9395047426223755
+[2026-10-29 16:13:39,179][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:39,180][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.48
+[2026-10-29 16:13:39,181][rfdiffusion.inference.model_runners][INFO] - Timestep 32, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:40,700][__main__][INFO] - pLDDT: 0.9771678447723389
+[2026-10-29 16:13:40,700][__main__][INFO] - pLDDT motif: 0.9575852155685425
+[2026-10-29 16:13:40,701][__main__][INFO] - pLDDT motif min: 0.9399697184562683
+[2026-10-29 16:13:40,704][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:40,705][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.72
+[2026-10-29 16:13:40,706][rfdiffusion.inference.model_runners][INFO] - Timestep 31, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:42,291][__main__][INFO] - pLDDT: 0.977599561214447
+[2026-10-29 16:13:42,292][__main__][INFO] - pLDDT motif: 0.9581287503242493
+[2026-10-29 16:13:42,292][__main__][INFO] - pLDDT motif min: 0.9406777620315552
+[2026-10-29 16:13:42,296][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:42,296][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.13
+[2026-10-29 16:13:42,298][rfdiffusion.inference.model_runners][INFO] - Timestep 30, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:43,807][__main__][INFO] - pLDDT: 0.9774073362350464
+[2026-10-29 16:13:43,808][__main__][INFO] - pLDDT motif: 0.9581234455108643
+[2026-10-29 16:13:43,816][__main__][INFO] - pLDDT motif min: 0.9421033263206482
+[2026-10-29 16:13:43,820][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:43,820][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 9.10
+[2026-10-29 16:13:43,821][rfdiffusion.inference.model_runners][INFO] - Timestep 29, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:45,407][__main__][INFO] - pLDDT: 0.9770297408103943
+[2026-10-29 16:13:45,407][__main__][INFO] - pLDDT motif: 0.9576640725135803
+[2026-10-29 16:13:45,408][__main__][INFO] - pLDDT motif min: 0.9410231113433838
+[2026-10-29 16:13:45,411][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:45,412][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 8.90
+[2026-10-29 16:13:45,413][rfdiffusion.inference.model_runners][INFO] - Timestep 28, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:46,998][__main__][INFO] - pLDDT: 0.9772107601165771
+[2026-10-29 16:13:46,999][__main__][INFO] - pLDDT motif: 0.9575446248054504
+[2026-10-29 16:13:46,999][__main__][INFO] - pLDDT motif min: 0.9404035210609436
+[2026-10-29 16:13:47,003][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:13:47,003][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 8.65
+[2026-10-29 16:13:47,005][rfdiffusion.inference.model_runners][INFO] - Timestep 27, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:48,518][__main__][INFO] - pLDDT: 0.9768089652061462
+[2026-10-29 16:13:48,519][__main__][INFO] - pLDDT motif: 0.9567358493804932
+[2026-10-29 16:13:48,519][__main__][INFO] - pLDDT motif min: 0.9382761120796204
+[2026-10-29 16:13:48,523][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:48,524][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 8.53
+[2026-10-29 16:13:48,525][rfdiffusion.inference.model_runners][INFO] - Timestep 26, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:50,105][__main__][INFO] - pLDDT: 0.9771441221237183
+[2026-10-29 16:13:50,105][__main__][INFO] - pLDDT motif: 0.9570959806442261
+[2026-10-29 16:13:50,105][__main__][INFO] - pLDDT motif min: 0.9391776323318481
+[2026-10-29 16:13:50,109][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:50,110][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 8.00
+[2026-10-29 16:13:50,111][rfdiffusion.inference.model_runners][INFO] - Timestep 25, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:51,631][__main__][INFO] - pLDDT: 0.9767680168151855
+[2026-10-29 16:13:51,632][__main__][INFO] - pLDDT motif: 0.9567374587059021
+[2026-10-29 16:13:51,632][__main__][INFO] - pLDDT motif min: 0.9384958148002625
+[2026-10-29 16:13:51,636][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:51,636][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 7.63
+[2026-10-29 16:13:51,638][rfdiffusion.inference.model_runners][INFO] - Timestep 24, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:53,218][__main__][INFO] - pLDDT: 0.9767411947250366
+[2026-10-29 16:13:53,219][__main__][INFO] - pLDDT motif: 0.9565436840057373
+[2026-10-29 16:13:53,219][__main__][INFO] - pLDDT motif min: 0.9375264048576355
+[2026-10-29 16:13:53,223][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:53,224][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 7.61
+[2026-10-29 16:13:53,225][rfdiffusion.inference.model_runners][INFO] - Timestep 23, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:54,748][__main__][INFO] - pLDDT: 0.9762968420982361
+[2026-10-29 16:13:54,749][__main__][INFO] - pLDDT motif: 0.9560717344284058
+[2026-10-29 16:13:54,757][__main__][INFO] - pLDDT motif min: 0.9370829463005066
+[2026-10-29 16:13:54,761][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:54,761][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 7.64
+[2026-10-29 16:13:54,762][rfdiffusion.inference.model_runners][INFO] - Timestep 22, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:56,334][__main__][INFO] - pLDDT: 0.9762117862701416
+[2026-10-29 16:13:56,335][__main__][INFO] - pLDDT motif: 0.9560806155204773
+[2026-10-29 16:13:56,335][__main__][INFO] - pLDDT motif min: 0.9371583461761475
+[2026-10-29 16:13:56,339][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:56,339][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 7.18
+[2026-10-29 16:13:56,340][rfdiffusion.inference.model_runners][INFO] - Timestep 21, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:57,924][__main__][INFO] - pLDDT: 0.9769084453582764
+[2026-10-29 16:13:57,925][__main__][INFO] - pLDDT motif: 0.9567785263061523
+[2026-10-29 16:13:57,925][__main__][INFO] - pLDDT motif min: 0.9384067058563232
+[2026-10-29 16:13:57,929][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:57,929][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 7.04
+[2026-10-29 16:13:57,931][rfdiffusion.inference.model_runners][INFO] - Timestep 20, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:13:59,451][__main__][INFO] - pLDDT: 0.9766116738319397
+[2026-10-29 16:13:59,452][__main__][INFO] - pLDDT motif: 0.9567794799804688
+[2026-10-29 16:13:59,452][__main__][INFO] - pLDDT motif min: 0.9397253394126892
+[2026-10-29 16:13:59,456][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:13:59,456][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 6.92
+[2026-10-29 16:13:59,457][rfdiffusion.inference.model_runners][INFO] - Timestep 19, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:01,045][__main__][INFO] - pLDDT: 0.9765126705169678
+[2026-10-29 16:14:01,045][__main__][INFO] - pLDDT motif: 0.9562993049621582
+[2026-10-29 16:14:01,045][__main__][INFO] - pLDDT motif min: 0.9397512078285217
+[2026-10-29 16:14:01,049][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:01,050][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 6.45
+[2026-10-29 16:14:01,051][rfdiffusion.inference.model_runners][INFO] - Timestep 18, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:02,573][__main__][INFO] - pLDDT: 0.9767321944236755
+[2026-10-29 16:14:02,574][__main__][INFO] - pLDDT motif: 0.9565783739089966
+[2026-10-29 16:14:02,574][__main__][INFO] - pLDDT motif min: 0.9405292272567749
+[2026-10-29 16:14:02,578][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:02,578][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 6.47
+[2026-10-29 16:14:02,580][rfdiffusion.inference.model_runners][INFO] - Timestep 17, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:04,223][__main__][INFO] - pLDDT: 0.9769668579101562
+[2026-10-29 16:14:04,224][__main__][INFO] - pLDDT motif: 0.9571269750595093
+[2026-10-29 16:14:04,224][__main__][INFO] - pLDDT motif min: 0.9412297606468201
+[2026-10-29 16:14:04,228][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:04,228][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 6.28
+[2026-10-29 16:14:04,230][rfdiffusion.inference.model_runners][INFO] - Timestep 16, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:05,831][__main__][INFO] - pLDDT: 0.9768006801605225
+[2026-10-29 16:14:05,832][__main__][INFO] - pLDDT motif: 0.9566747546195984
+[2026-10-29 16:14:05,832][__main__][INFO] - pLDDT motif min: 0.9410479068756104
+[2026-10-29 16:14:05,835][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.30
+[2026-10-29 16:14:05,836][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 5.84
+[2026-10-29 16:14:05,837][rfdiffusion.inference.model_runners][INFO] - Timestep 15, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:07,373][__main__][INFO] - pLDDT: 0.9767913818359375
+[2026-10-29 16:14:07,374][__main__][INFO] - pLDDT motif: 0.956690788269043
+[2026-10-29 16:14:07,374][__main__][INFO] - pLDDT motif min: 0.9400772452354431
+[2026-10-29 16:14:07,378][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:07,379][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 5.75
+[2026-10-29 16:14:07,380][rfdiffusion.inference.model_runners][INFO] - Timestep 14, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:08,979][__main__][INFO] - pLDDT: 0.9770225286483765
+[2026-10-29 16:14:08,979][__main__][INFO] - pLDDT motif: 0.9569542407989502
+[2026-10-29 16:14:08,979][__main__][INFO] - pLDDT motif min: 0.9402393102645874
+[2026-10-29 16:14:08,983][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:08,984][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 5.62
+[2026-10-29 16:14:08,985][rfdiffusion.inference.model_runners][INFO] - Timestep 13, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:10,531][__main__][INFO] - pLDDT: 0.9768635630607605
+[2026-10-29 16:14:10,532][__main__][INFO] - pLDDT motif: 0.9566131830215454
+[2026-10-29 16:14:10,532][__main__][INFO] - pLDDT motif min: 0.9403302669525146
+[2026-10-29 16:14:10,535][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:10,536][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 5.89
+[2026-10-29 16:14:10,537][rfdiffusion.inference.model_runners][INFO] - Timestep 12, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:12,134][__main__][INFO] - pLDDT: 0.9775663018226624
+[2026-10-29 16:14:12,135][__main__][INFO] - pLDDT motif: 0.9576674699783325
+[2026-10-29 16:14:12,135][__main__][INFO] - pLDDT motif min: 0.9402340650558472
+[2026-10-29 16:14:12,139][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.28
+[2026-10-29 16:14:12,139][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 5.21
+[2026-10-29 16:14:12,141][rfdiffusion.inference.model_runners][INFO] - Timestep 11, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:13,737][__main__][INFO] - pLDDT: 0.9769421815872192
+[2026-10-29 16:14:13,738][__main__][INFO] - pLDDT motif: 0.9567056894302368
+[2026-10-29 16:14:13,738][__main__][INFO] - pLDDT motif min: 0.9383770823478699
+[2026-10-29 16:14:13,742][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:13,742][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 4.55
+[2026-10-29 16:14:13,743][rfdiffusion.inference.model_runners][INFO] - Timestep 10, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:15,267][__main__][INFO] - pLDDT: 0.9769963622093201
+[2026-10-29 16:14:15,267][__main__][INFO] - pLDDT motif: 0.9567133188247681
+[2026-10-29 16:14:15,267][__main__][INFO] - pLDDT motif min: 0.938114583492279
+[2026-10-29 16:14:15,271][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:15,272][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 4.09
+[2026-10-29 16:14:15,273][rfdiffusion.inference.model_runners][INFO] - Timestep 9, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:16,887][__main__][INFO] - pLDDT: 0.9774402976036072
+[2026-10-29 16:14:16,887][__main__][INFO] - pLDDT motif: 0.9574006795883179
+[2026-10-29 16:14:16,887][__main__][INFO] - pLDDT motif min: 0.9401889443397522
+[2026-10-29 16:14:16,891][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.29
+[2026-10-29 16:14:16,891][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 3.98
+[2026-10-29 16:14:16,893][rfdiffusion.inference.model_runners][INFO] - Timestep 8, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:18,432][__main__][INFO] - pLDDT: 0.9773887395858765
+[2026-10-29 16:14:18,433][__main__][INFO] - pLDDT motif: 0.9573248624801636
+[2026-10-29 16:14:18,433][__main__][INFO] - pLDDT motif min: 0.9406038522720337
+[2026-10-29 16:14:18,437][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.28
+[2026-10-29 16:14:18,437][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 3.67
+[2026-10-29 16:14:18,439][rfdiffusion.inference.model_runners][INFO] - Timestep 7, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:20,048][__main__][INFO] - pLDDT: 0.9774289131164551
+[2026-10-29 16:14:20,049][__main__][INFO] - pLDDT motif: 0.9579002261161804
+[2026-10-29 16:14:20,049][__main__][INFO] - pLDDT motif min: 0.943285346031189
+[2026-10-29 16:14:20,053][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.28
+[2026-10-29 16:14:20,053][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 3.67
+[2026-10-29 16:14:20,055][rfdiffusion.inference.model_runners][INFO] - Timestep 6, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:21,598][__main__][INFO] - pLDDT: 0.9776024222373962
+[2026-10-29 16:14:21,598][__main__][INFO] - pLDDT motif: 0.9579311609268188
+[2026-10-29 16:14:21,598][__main__][INFO] - pLDDT motif min: 0.94288170337677
+[2026-10-29 16:14:21,603][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.28
+[2026-10-29 16:14:21,603][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 3.10
+[2026-10-29 16:14:21,605][rfdiffusion.inference.model_runners][INFO] - Timestep 5, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:23,228][__main__][INFO] - pLDDT: 0.9774932861328125
+[2026-10-29 16:14:23,228][__main__][INFO] - pLDDT motif: 0.9577853083610535
+[2026-10-29 16:14:23,228][__main__][INFO] - pLDDT motif min: 0.9422626495361328
+[2026-10-29 16:14:23,232][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.28
+[2026-10-29 16:14:23,233][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 2.74
+[2026-10-29 16:14:23,234][rfdiffusion.inference.model_runners][INFO] - Timestep 4, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:24,827][__main__][INFO] - pLDDT: 0.9772697687149048
+[2026-10-29 16:14:24,828][__main__][INFO] - pLDDT motif: 0.957682728767395
+[2026-10-29 16:14:24,828][__main__][INFO] - pLDDT motif min: 0.9429678916931152
+[2026-10-29 16:14:24,832][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.28
+[2026-10-29 16:14:24,832][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 2.32
+[2026-10-29 16:14:24,834][rfdiffusion.inference.model_runners][INFO] - Timestep 3, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:26,383][__main__][INFO] - pLDDT: 0.9769386053085327
+[2026-10-29 16:14:26,383][__main__][INFO] - pLDDT motif: 0.956790566444397
+[2026-10-29 16:14:26,383][__main__][INFO] - pLDDT motif min: 0.9408580660820007
+[2026-10-29 16:14:26,387][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 0.28
+[2026-10-29 16:14:26,388][rfdiffusion.inference.utils][INFO] - Sampled motif RMSD: 1.83
+[2026-10-29 16:14:26,389][rfdiffusion.inference.model_runners][INFO] - Timestep 2, input to next step: MKGDTKVINYLNKLLGN--------FLHARMFKNWGLKRLNDVEYH--------ADRYIERILFLEGLPNLQDLGKLNIGEDVEEMLRSDL--------NLREAIGYADSVHDYVSRDMMIE--------IDWLETELDLIQKMGLQNYLQAQIREEG
+[2026-10-29 16:14:27,986][__main__][INFO] - pLDDT: 0.9772570729255676
+[2026-10-29 16:14:27,987][__main__][INFO] - pLDDT motif: 0.9573733806610107
+[2026-10-29 16:14:27,987][__main__][INFO] - pLDDT motif min: 0.9413254261016846
+[2026-10-29 16:14:29,039][__main__][INFO] - Finished design in 1.33 minutes

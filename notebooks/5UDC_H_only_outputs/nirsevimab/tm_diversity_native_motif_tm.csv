@@ -1,0 +1,4 @@
+structure,native_motif_tm_score
+pgel_train_0.pdb,0.43726000
+pgel_train_1.pdb,0.51362000
+pgel_train_2.pdb,0.46968000

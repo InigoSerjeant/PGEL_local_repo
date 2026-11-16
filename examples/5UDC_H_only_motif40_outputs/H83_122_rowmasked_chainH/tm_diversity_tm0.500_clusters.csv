@@ -1,0 +1,5 @@
+structure,cluster,native_motif_tm_score,cluster_distinguishable_from_native
+train_0.pdb,1,0.58071000,True
+variant_0.pdb,1,0.42843000,True
+variant_1.pdb,1,0.46837000,True
+variant_2.pdb,1,0.45734000,True

@@ -1,0 +1,14 @@
+[2026-11-12 10:25:46,386][__main__][INFO] - Found GPU with device_name NVIDIA GeForce RTX 4070 Ti. Will run RFdiffusion on NVIDIA GeForce RTX 4070 Ti
+[2026-11-12 10:25:46,386][rfdiffusion.inference.model_runners][INFO] - Reading checkpoint from /home/ics121/Documents/FirstYear/PGEL_pipeline/PGEL/PGEL/rfdiffusion/inference/../../models/Base_ckpt.pt
+[2026-11-12 10:25:47,572][rfdiffusion.inference.model_runners][INFO] - Loading checkpoint.
+[2026-11-12 10:25:47,638][rfdiffusion.diffusion][INFO] - Using cached IGSO3.
+[2026-11-12 10:25:47,649][rfdiffusion.inference.model_runners][INFO] - Using contig: ['28-28/H29-34/65-65/H100-122/95-95']
+[2026-11-12 10:25:47,660][rfdiffusion.inference.model_runners][INFO] - Sequence init: VQLVQSGAEVKKPGSSVMVSCQASGGLL------WVRQAPGQGPEWMGGIIPVLGTVHYGPKFQGRVTITADESTDTAYMELSSLRSEDTAMYYCATET-----------------------VSSASTKGPSVFPLAPSGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKRV
+[2026-11-12 10:25:47,661][__main__][INFO] - Making design 5UDC_H_only_outputs/test_0 with random rate 0.550000011920929 and row masking
+[2026-11-12 10:25:47,661][__main__][INFO] - (cautious mode) Skipping this design because 5UDC_H_only_outputs/test_0.pdb already exists.
+[2026-11-12 10:25:47,661][__main__][INFO] - Making design 5UDC_H_only_outputs/test_1 with random rate 0.3499999940395355 and row masking
+[2026-11-12 10:25:47,666][rfdiffusion.inference.model_runners][INFO] - Using contig: ['28-28/H29-34/65-65/H100-122/95-95']
+[2026-11-12 10:25:47,676][rfdiffusion.inference.model_runners][INFO] - Sequence init: VQLVQSGAEVKKPGSSVMVSCQASGGLL------WVRQAPGQGPEWMGGIIPVLGTVHYGPKFQGRVTITADESTDTAYMELSSLRSEDTAMYYCATET-----------------------VSSASTKGPSVFPLAPSGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKRV
+[2026-11-12 10:25:49,220][__main__][INFO] - pLDDT: 0.7955918312072754
+[2026-11-12 10:25:49,233][__main__][INFO] - pLDDT motif: 0.5448663830757141
+[2026-11-12 10:25:49,233][__main__][INFO] - pLDDT motif min: 0.37606188654899597

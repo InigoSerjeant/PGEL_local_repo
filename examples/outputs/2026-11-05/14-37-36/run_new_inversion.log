@@ -1,0 +1,9 @@
+[2026-11-05 14:37:37,034][__main__][INFO] - Found GPU with device_name NVIDIA GeForce RTX 4070 Ti. Will run RFdiffusion on NVIDIA GeForce RTX 4070 Ti
+[2026-11-05 14:37:37,035][rfdiffusion.inference.model_runners][INFO] - Reading checkpoint from /home/ics121/Documents/FirstYear/PGEL_pipeline/PGEL/PGEL/rfdiffusion/inference/../../models/Base_ckpt.pt
+[2026-11-05 14:37:38,727][rfdiffusion.inference.model_runners][INFO] - Loading checkpoint.
+[2026-11-05 14:37:38,792][rfdiffusion.diffusion][INFO] - Using cached IGSO3.
+[2026-11-05 14:37:38,804][rfdiffusion.inference.model_runners][INFO] - Using contig: ['61-61/H62-114/103-103']
+[2026-11-05 14:37:38,814][rfdiffusion.inference.model_runners][INFO] - Sequence init: VQLVQSGAEVKKPGSSVMVSCQASGGLLEDYIINWVRQAPGQGPEWMGGIIPVLGTVHYGP-----------------------------------------------------WGQGTLVTVSSASTKGPSVFPLAPSGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKRV
+[2026-11-05 14:37:38,815][__main__][INFO] - Making design 5UDC_H_only_outputs/H62_114_rowmasked/sample_0 with random rate 0.550000011920929 and row masking
+[2026-11-05 14:37:38,820][rfdiffusion.inference.model_runners][INFO] - Using contig: ['61-61/H62-114/103-103']
+[2026-11-05 14:37:38,830][rfdiffusion.inference.model_runners][INFO] - Sequence init: VQLVQSGAEVKKPGSSVMVSCQASGGLLEDYIINWVRQAPGQGPEWMGGIIPVLGTVHYGP-----------------------------------------------------WGQGTLVTVSSASTKGPSVFPLAPSGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKRV

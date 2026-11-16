@@ -1,0 +1,5 @@
+structure,native_motif_tm_score
+train_0.pdb,0.58071000
+variant_0.pdb,0.42843000
+variant_1.pdb,0.46837000
+variant_2.pdb,0.45734000
