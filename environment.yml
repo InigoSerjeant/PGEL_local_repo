@@ -213,8 +213,6 @@ dependencies:
       - pyrsistent==0.20.0
       - python-dateutil==3.0.0
       - pytz==2026.6
-      - rfdiffusion==1.1.0
-      - se3-transformer==1.0.0
       - sentry-sdk==2.73.0
       - shortuuid==1.0.13
       - smmap==5.0.3
