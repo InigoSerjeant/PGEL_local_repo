@@ -50,6 +50,10 @@ def make_deterministic(seed=0):
     random.seed(seed)
 
 
+def tensors_are_finite(*tensors):
+    return all(torch.isfinite(tensor).all().item() for tensor in tensors)
+
+
 @hydra.main(version_base=None, config_path="../config/inference", config_name="base")
 def main(conf: HydraConfig) -> None:
     log = logging.getLogger(__name__)
@@ -91,6 +95,9 @@ def main(conf: HydraConfig) -> None:
     original_roi_indices = sampler.mappings['con_ref_idx0'] 
     # original_roi_indices = sampler.mappings['complex_con_ref_idx0'] 
     len_roi_indices = len(original_roi_indices)
+    pdb_coords = sampler.target_feats['xyz_27'] - torch.nanmean(
+        sampler.target_feats['xyz_27'][original_roi_indices, :4, :], dim=(0, 1)
+    ).view(1, 1, 3)
 
     # Initialise the msa, pair, and state embeddings
     if sampler.inf_conf.inversion_train:
@@ -103,7 +110,16 @@ def main(conf: HydraConfig) -> None:
         pair_prev = torch.load(f'learnt_embeddings/pair_{sampler.inf_conf.input_pdb[11:-4]}.pt')
     loss_list = []  
 
-    for i_des in range(design_startnum, design_startnum + sampler.inf_conf.num_designs):
+    successful_designs = 0
+    i_des = design_startnum
+    while successful_designs < sampler.inf_conf.num_designs:
+        if sampler.inf_conf.inversion_train:
+            design_embeddings = (
+                msa_prev.detach().clone(),
+                pair_prev.detach().clone(),
+                state_prev.detach().clone(),
+            )
+
         #if conf.inference.deterministic:
             #make_deterministic(i_des)
         
@@ -123,6 +139,7 @@ def main(conf: HydraConfig) -> None:
             log.info(
                 f"(cautious mode) Skipping this design because {out_prefix}.pdb already exists."
             )
+            i_des += 1
             continue
         x_init, seq_init = sampler.sample_init(inverse_ms=inverse_ms)
         if not sampler.inf_conf.inversion_train:
@@ -136,6 +153,12 @@ def main(conf: HydraConfig) -> None:
             prev_roi_indices = torch.arange(len_roi_indices)
         
         roi_indices = sampler.mask_seq.nonzero()[:, 1]
+        print("mask_seq shape:", sampler.mask_seq.shape)
+        print("Number of True:", sampler.mask_seq.sum().item())
+        print("Number of False:", (~sampler.mask_seq.bool()).sum().item())
+
+        print("True indices:",
+        sampler.mask_seq.squeeze().nonzero().squeeze().tolist())
         #if conf.inference.mutation_pos:
         #    seq_init[roi_indices[conf.inference.mutation_pos[0]], -1] = 1
         #    seq_init[roi_indices[conf.inference.mutation_pos[0]], :-1] = 0
@@ -174,12 +197,18 @@ def main(conf: HydraConfig) -> None:
         for param in sampler.model.parameters():
             param.requires_grad = False
         print(f'Rate is: {random_rate}')
+        print("ROI length:", len(sampler.mappings['con_ref_idx0']))
+        print("MSA:", msa_prev.shape)
+        print("Pair:", pair_prev.shape)
+        print("State:", state_prev.shape)
+        sampler.prev_pred = None
+        sample_failed = False
+        failure_reason = ""
+        loss_list_start = len(loss_list)
         # Loop over number of reverse diffusion time steps.
         for t in range(int(sampler.t_step_input), sampler.inf_conf.final_step - 1, -1):
             final_step = sampler.inf_conf.final_step
             msa_masked, msa_full, seq_in, xt_in, idx_pdb, t1d, t2d, xyz_t, alpha_t = sampler._preprocess(seq_t, x_t, t, inverse_ms=inverse_ms)
-            if t == int(sampler.t_step_input) and i_des == design_startnum:
-                pdb_coords = sampler.target_feats['xyz_27'] - torch.nanmean(sampler.target_feats['xyz_27'][original_roi_indices,:4,:], dim=(0,1)).view(1,1,3)
             if conf.inference.model_runner == 'default':
                 N,L = msa_masked.shape[:2]
             else:
@@ -199,7 +228,11 @@ def main(conf: HydraConfig) -> None:
             ##################################
 
             if conf.inference.model_runner == 'SelfConditioning':
-                if (t < sampler.diffuser.T) and (t != sampler.diffuser_conf.partial_T):   
+                if (
+                    (t < sampler.diffuser.T)
+                    and (t != sampler.diffuser_conf.partial_T)
+                    and sampler.prev_pred is not None
+                ):
                     zeros = torch.zeros(B,1,L,24,3).float().to(xyz_t.device)
                     xyz_t = torch.cat((sampler.prev_pred.unsqueeze(1),zeros), dim=-2) # [B,T,L,27,3]
                     t2d_44   = xyz_to_t2d(xyz_t) # [B,T,L,L,44]
@@ -240,7 +273,13 @@ def main(conf: HydraConfig) -> None:
                                 return_infer=True,
                                 motif_mask=sampler.mask_seq.squeeze(0), #sampler.diffusion_mask.squeeze().to(sampler.device),
                                 k=random_rate,
-                                inverse_ms=inverse_ms, seed=i_des, row_masking=row_masking)
+                                inverse_ms=inverse_ms, seed=i_des, row_masking=row_masking,
+                                use_checkpoint=True)
+
+            if not tensors_are_finite(px0, alpha, logits, plddt):
+                sample_failed = True
+                failure_reason = f"non-finite model output at timestep {t}"
+                break
 
             alpha = alpha.detach()
             logits = logits.detach()
@@ -282,6 +321,11 @@ def main(conf: HydraConfig) -> None:
                     x_t_1 = torch.clone(px0).to(x_t.device)
                     px0 = px0.to(x_t.device)
 
+            if not tensors_are_finite(px0[:, :3], x_t_1[:, :3]):
+                sample_failed = True
+                failure_reason = f"non-finite backbone coordinates at timestep {t}"
+                break
+
             if sampler.symmetry is not None:
                 x_t_1, seq_t_1 = sampler.symmetry.apply_symmetry(x_t_1, seq_t_1)
 
@@ -294,6 +338,7 @@ def main(conf: HydraConfig) -> None:
             denoised_xyz_stack.append(x_t)
             seq_stack.append(seq_t)
             plddt_stack.append(plddt[0].detach())  # remove singleton leading dimension
+
 
             # Optimising embeddings
             if not inverse_ms or not sampler.inf_conf.inversion_train:
@@ -383,6 +428,11 @@ def main(conf: HydraConfig) -> None:
                 torsion_loss = torsion_angle_loss(px0[roi_indices, :4, :], pdb_coords[original_roi_indices, :4, :])
                 loss += 0.2 * torsion_loss 
 
+            if not tensors_are_finite(loss):
+                sample_failed = True
+                failure_reason = f"non-finite loss at timestep {t}"
+                break
+
             loss_list.append(loss.item())
             if sampler.inf_conf.inversion_train:
                 optimiser.zero_grad()
@@ -398,6 +448,19 @@ def main(conf: HydraConfig) -> None:
             px0.detach_()
             
             print(f'Timestep {t}, loss: {loss.item()}')
+
+        if sample_failed:
+            del loss_list[loss_list_start:]
+            if sampler.inf_conf.inversion_train:
+                msa_prev, pair_prev, state_prev = (
+                    embedding.detach().clone() for embedding in design_embeddings
+                )
+            log.warning(
+                f"Discarding design {out_prefix} after {failure_reason}; "
+                "generating a replacement sample"
+            )
+            i_des += 1
+            continue
 
         # Flip order for better visualization in pymol
         denoised_xyz_stack = torch.stack(denoised_xyz_stack)
@@ -466,6 +529,12 @@ def main(conf: HydraConfig) -> None:
             for key, value in sampler.contig_map.get_mappings().items():
                 trb[key] = value
         log.info(f"Finished design in {(time.time()-start_time)/60:.2f} minutes")
+        i_des += 1
+        successful_designs += 1
+        log.info(
+            f"Completed {successful_designs}/{sampler.inf_conf.num_designs} "
+            "successful designs"
+        )
 
 
 if __name__ == "__main__":

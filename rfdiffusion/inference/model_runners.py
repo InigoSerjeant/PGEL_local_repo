@@ -339,7 +339,7 @@ class Sampler:
                                                   self.inf_conf,
                                                   self.hotspot_0idx,
                                                   self.binderlen)
-
+        
         ###################################
         ### Initialize other attributes ###
         ###################################
@@ -352,6 +352,33 @@ class Sampler:
 
         self.diffusion_mask = self.mask_str
         self.chain_idx=['A' if i < self.binderlen else 'B' for i in range(L_mapped)]
+
+        print("\n===== PGEL MAPPING DEBUG =====")
+       
+        print("Input PDB:", self.inf_conf.input_pdb)
+    
+        print("xyz_27:", xyz_27.shape)
+        print("mask_27:", mask_27.shape)
+        print("seq_orig:", seq_orig.shape)
+        
+        print("L_mapped:", L_mapped)
+    
+        print("mask_seq:", self.mask_seq.shape)
+        print("mask_seq squeezed:", self.mask_seq.squeeze().shape)
+        
+        print("contig ref length:", len(self.contig_map.ref))
+    
+        print("ref_idx0:", self.contig_map.ref_idx0)
+        print("hal_idx0:", self.contig_map.hal_idx0)
+    
+        print("inpaint:", len(self.contig_map.inpaint))
+        print("==============================\n")
+        print("mask_seq values:", self.mask_seq.squeeze().tolist())
+
+        print("Contig reference:", self.contig_map.ref)
+
+        print("Reference residue mapping:",
+              [self.contig_map.ref[i] for i in range(len(self.contig_map.ref))])
         
         ####################################
         ### Generate initial coordinates ###

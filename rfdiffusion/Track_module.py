@@ -321,10 +321,10 @@ class IterBlock(nn.Module):
     def forward(self, msa, pair, R_in, T_in, xyz, state, idx, motif_mask, use_checkpoint=False):
         rbf_feat = rbf(torch.cdist(xyz[:,:,1,:], xyz[:,:,1,:]))
         if use_checkpoint:
-            msa = checkpoint.checkpoint(create_custom_forward(self.msa2msa), msa, pair, rbf_feat, state)
-            pair = checkpoint.checkpoint(create_custom_forward(self.msa2pair), msa, pair)
-            pair = checkpoint.checkpoint(create_custom_forward(self.pair2pair), pair, rbf_feat)
-            R, T, state, alpha = checkpoint.checkpoint(create_custom_forward(self.str2str, top_k=0), msa, pair, R_in, T_in, xyz, state, idx, motif_mask)
+            msa = checkpoint.checkpoint(create_custom_forward(self.msa2msa), msa, pair, rbf_feat, state, use_reentrant=False)
+            pair = checkpoint.checkpoint(create_custom_forward(self.msa2pair), msa, pair, use_reentrant=False)
+            pair = checkpoint.checkpoint(create_custom_forward(self.pair2pair), pair, rbf_feat, use_reentrant=False)
+            R, T, state, alpha = checkpoint.checkpoint(create_custom_forward(self.str2str, top_k=0), msa, pair, R_in, T_in, xyz, state, idx, motif_mask, use_reentrant=False)
         else:
             msa = self.msa2msa(msa, pair, rbf_feat, state)
             pair = self.msa2pair(msa, pair)

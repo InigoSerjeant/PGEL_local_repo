@@ -1,0 +1,4 @@
+structure,pgel_train_0,pgel_train_1,pgel_train_2
+pgel_train_0,1.00000000,0.97748000,0.98818000
+pgel_train_1,0.97748000,1.00000000,0.98954000
+pgel_train_2,0.98818000,0.98954000,1.00000000

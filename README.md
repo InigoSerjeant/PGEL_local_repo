@@ -20,39 +20,89 @@ PGEL shifts the control mechanism from coordinate-space perturbation to embeddin
 
 ## Requirements and Setup
 
-PGEL is built around RFdiffusion and shares it's requirements. To install PGEL locally:
+The supplied [`environment.yml`](environment.yml) is the tested, pinned environment for **Linux x86_64 with an NVIDIA GPU and a driver compatible with CUDA 12.4**. These instructions assume an Ubuntu/Debian server, a working internet connection, and permission to install packages for your user. The NVIDIA driver must be installed and configured by the server administrator; Conda installs user-space CUDA libraries, not the kernel driver.
 
-1. Clone the repository.
-2. Create the RFdiffusion-compatible conda environment:
+### 1. Install system tools
+
+Open a terminal on the server. Install the tools needed to download Miniforge, clone the repository, and fetch model weights:
 
 ```bash
-conda env create -f env/SE3nv.yml
-conda activate SE3nv
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl git wget bzip2
 ```
 
-3. Install the bundled NVIDIA SE(3)-Transformer implementation:
+On a different Linux distribution, use its package manager to install the equivalent tools. If you do not have `sudo`, ask the server administrator to install them.
+
+Check that the server exposes the NVIDIA GPU and driver:
 
 ```bash
-cd env/SE3Transformer
-pip install --no-cache-dir -r requirements.txt
-python setup.py install
-cd ../..
+nvidia-smi
 ```
 
-4. Install PGEL from the repository root:
+If this command is missing or reports no driver/device, contact the administrator before proceeding with GPU inference.
+
+### 2. Install Miniforge (Conda)
+
+The following installs Miniforge for the current user without requiring an existing Conda installation:
 
 ```bash
-pip install -e .
+curl -L -o "$HOME/Miniforge3.sh" \
+  https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+bash "$HOME/Miniforge3.sh" -b -p "$HOME/miniforge3"
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+conda init bash
 ```
 
-5. Download the RFdiffusion model weights used by PGEL:
+Reload your Bash configuration so `conda` is available in future terminals:
 
 ```bash
-mkdir -p models
+source "$HOME/.bashrc"
+conda --version
+```
+
+These installer commands target Linux x86_64. For Linux ARM64, download the corresponding `Miniforge3-Linux-aarch64.sh` installer; the supplied PGEL environment is only tested on x86_64.
+
+### 3. Clone PGEL and create its environment
+
+```bash
+git clone https://github.com/InigoSerjeant/PGEL_local_repo.git
+cd PGEL_local_repo
+conda env create --file environment.yml
+conda activate PGEL
+```
+
+### 4. Install the Python packages
+
+Install the bundled SE(3)-Transformer and this checkout in editable mode:
+
+```bash
+python -m pip install --no-cache-dir -r env/SE3Transformer/requirements.txt
+python -m pip install -e ./env/SE3Transformer
+python -m pip install -e .
+```
+
+Editable installation is important: it makes Python use this checkout's RFdiffusion code, which resolves model weights from this checkout's `models/` directory.
+
+### 5. Download model weights
+
+The script downloads all supported checkpoints and requires `wget`:
+
+```bash
 bash scripts/download_models.sh models
 ```
 
-After installation, activate the `SE3nv` environment before running PGEL scripts.
+The checkpoints require about 3.4 GB of disk space. Verify the Python dependencies and that the editable install points into the clone:
+
+```bash
+python -m pip check
+python -c "import rfdiffusion; print(rfdiffusion.__file__)"
+```
+
+The printed `rfdiffusion` path should be inside the cloned repository. In a new terminal, run `source "$HOME/miniforge3/etc/profile.d/conda.sh"` if Conda is not initialized there, then activate the environment with `conda activate PGEL` before running scripts.
+
+If Python reports `No module named 'hydra'`, confirm that `PGEL` is active and that `python -m pip show hydra-core` finds the package. The project needs **`hydra-core`**; do not install the unrelated package named `hydra`. If the RFdiffusion import points into `site-packages` instead of the clone, rerun `python -m pip install -e .` from the repository root.
+
+> **Note:** `environment.yml` is a Linux/NVIDIA environment specification, not a platform-independent requirements file. For a different operating system or CUDA setup, the PyTorch, DGL, and CUDA package versions need to be adapted together.
 
 ## Quick Start
 
@@ -61,32 +111,33 @@ The main PGEL script for motif diversification is `scripts/run_new_inversion.py`
 1. Embedding learning with `inference.inversion_train=True`, which optimizes the motif embedding while keeping the denoiser frozen.
 2. Diversification sampling with `inference.inversion_train=False`, which reloads the learned embedding and generates diversified structures by perturbing scaffold conditioning during reverse diffusion.
 
-From the repository root:
+For a first run using the included 5UDC example and its precomputed embeddings, run from the `examples` directory:
 
 ```bash
 cd examples
 mkdir -p learnt_embeddings outputs
+python ../scripts/run_new_inversion.py --config-name 5UDC_H_only
 ```
 
-Learn the motif embedding for a case:
+Hydra's option is `--config-name` (not `--config`). To learn an embedding for a different input, run the training stage from `examples`:
 
 ```bash
 python ../scripts/run_new_inversion.py \
-  inference.input_pdb=input_pdbs/1bcf.pdb \
-  inference.output_prefix=example_outputs/pgel_train \
+  inference.input_pdb=input_pdbs/1bcf_chainA.pdb \
+  inference.output_prefix=outputs/pgel_train \
   'contigmap.contigs=[17-17/A18-25/21-21/A47-54/37-37/A92-99/23-23/A123-130/28-28]' \
-  inference.num_designs=10 \
+  inference.num_designs=1 \
   inference.inversion_train=True
 ```
 
-Generate diversified motifs from the learned embedding:
+Then generate diversified motifs from the learned embedding, using the same input and contig:
 
 ```bash
 python ../scripts/run_new_inversion.py \
-  inference.input_pdb=input_pdbs/<case>.pdb \
-  'contigmap.contigs=[<case-specific-contig>]' \
-  inference.output_prefix=outputs/<case>/sample \
-  inference.num_designs=<num_samples> \
+  inference.input_pdb=input_pdbs/1bcf_chainA.pdb \
+  'contigmap.contigs=[17-17/A18-25/21-21/A47-54/37-37/A92-99/23-23/A123-130/28-28]' \
+  inference.output_prefix=outputs/pgel_sample \
+  inference.num_designs=1 \
   inference.inversion_train=False
 ```
 

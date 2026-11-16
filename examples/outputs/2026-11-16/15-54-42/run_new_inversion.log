@@ -1,0 +1,2 @@
+[2026-11-16 15:54:42,486][__main__][INFO] - Found GPU with device_name NVIDIA GeForce RTX 4070 Ti. Will run RFdiffusion on NVIDIA GeForce RTX 4070 Ti
+[2026-11-16 15:54:42,486][rfdiffusion.inference.model_runners][INFO] - Reading checkpoint from /home/ics121/miniforge3/envs/SE3nv-test/lib/python3.10/site-packages/rfdiffusion/inference/../../models/Base_ckpt.pt
